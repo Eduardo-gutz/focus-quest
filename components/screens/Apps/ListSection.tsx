@@ -1,14 +1,14 @@
-import { forwardRef, type ReactElement } from "react";
-import { Alert, FlatList, Pressable, View } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
-
+import { AppListItemCard } from "@/components/screens/Apps/AppListItemCard";
 import {
   appsStyles,
   type ThemedStyles,
 } from "@/components/screens/Apps/apps-styles";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
+import { SwipeActions } from "@/components/ui/SwipeActions";
 import type { UpdateAppPayload } from "@/hooks/use-apps";
+import Feather from "@expo/vector-icons/Feather";
+import { type ReactElement, useRef } from "react";
+import { Alert, FlatList, Pressable, View } from "react-native";
 
 export interface ListItem {
   id: number;
@@ -26,12 +26,12 @@ interface ListSectionProps {
   themedStyles: ThemedStyles;
   onRefresh: () => Promise<void>;
   onAddFirstApp: () => void;
-  listHeaderComponent?: ReactElement;
+  listHeaderComponent?: ReactElement | null;
   onUpdateApp: (appId: number, payload: UpdateAppPayload) => Promise<void>;
   onToggleApp: (appId: number, value: boolean) => Promise<void>;
 }
 
-export const ListSection = forwardRef<FlatList<ListItem>, ListSectionProps>(function ListSection({
+export const ListSection = ({
   apps,
   usedMinutesByAppId,
   isHydrating,
@@ -42,10 +42,58 @@ export const ListSection = forwardRef<FlatList<ListItem>, ListSectionProps>(func
   listHeaderComponent,
   onUpdateApp,
   onToggleApp,
-}, ref) {
+}: ListSectionProps) => {
+  const openSwipeableRef = useRef<{
+    itemId: number;
+    close: () => void;
+  } | null>(null);
+
+  const closeOpenSwipeable = () => {
+    if (!openSwipeableRef.current) {
+      return;
+    }
+
+    openSwipeableRef.current.close();
+  };
+
+  const handleSwipeableWillOpen = (
+    itemId: number,
+    swipeable: { close: () => void } | null,
+  ) => {
+    if (!swipeable) {
+      return;
+    }
+
+    if (openSwipeableRef.current?.itemId !== itemId) {
+      openSwipeableRef.current?.close();
+    }
+
+    openSwipeableRef.current = { itemId, close: () => swipeable.close() };
+  };
+
+  const handleSwipeableClose = (itemId: number) => {
+    if (openSwipeableRef.current?.itemId === itemId) {
+      openSwipeableRef.current = null;
+    }
+  };
+
+  const handleCardPress = (itemId: number) => {
+    if (!openSwipeableRef.current) {
+      return;
+    }
+
+    if (openSwipeableRef.current.itemId !== itemId) {
+      openSwipeableRef.current.close();
+      return;
+    }
+
+    closeOpenSwipeable();
+  };
+
   const handleUpdateGoal = async (app: ListItem, nextGoal: number) => {
     try {
       await onUpdateApp(app.id, { dailyGoalMinutes: nextGoal });
+      closeOpenSwipeable();
     } catch (appError) {
       const message =
         appError instanceof Error
@@ -60,9 +108,7 @@ export const ListSection = forwardRef<FlatList<ListItem>, ListSectionProps>(func
     const uniquePresets = [...new Set(presets)].sort((a, b) => a - b);
     const buttons = uniquePresets.map((value) => ({
       text: `${value} min/día`,
-      onPress: () => {
-        void handleUpdateGoal(app, value);
-      },
+      onPress: () => handleUpdateGoal(app, value),
     }));
 
     Alert.alert(
@@ -85,93 +131,84 @@ export const ListSection = forwardRef<FlatList<ListItem>, ListSectionProps>(func
   };
 
   const renderRightActions = (app: ListItem) => (
-    <View style={appsStyles.swipeActionsContainer}>
+    <SwipeActions
+      actions={[
+        {
+          id: `edit-goal-${app.id}`,
+          label: (
+            <Feather
+              name="edit-2"
+              size={24}
+              color={themedStyles.textOnPrimary.color}
+            />
+          ),
+          disabled: isMutating,
+          onPress: () => openEditGoalActions(app),
+          buttonStyle: themedStyles.swipeActionEdit,
+        },
+        {
+          id: `deactivate-${app.id}`,
+          label: (
+            <Feather
+              name="trash-2"
+              size={24}
+              color={themedStyles.textOnPrimary.color}
+            />
+          ),
+          disabled: isMutating || !app.isActive,
+          onPress: () => handleToggleApp(app.id, false),
+          buttonStyle: themedStyles.swipeActionDeactivate,
+        },
+      ]}
+    />
+  );
+
+  const renderItem = ({ item }: { item: ListItem }) => (
+    <AppListItemCard
+      item={item}
+      usedMinutes={usedMinutesByAppId[item.id] ?? 0}
+      themedStyles={themedStyles}
+      renderRightActions={renderRightActions}
+      onSwipeableWillOpen={handleSwipeableWillOpen}
+      onSwipeableClose={handleSwipeableClose}
+      onCardPress={handleCardPress}
+    />
+  );
+
+  const listEmptyComponent = (
+    <View style={appsStyles.emptyStateContainer}>
+      <ThemedText style={appsStyles.emptyEmoji}>🎯</ThemedText>
+      <ThemedText style={appsStyles.emptyTitle}>
+        Aún no tienes apps monitoreadas
+      </ThemedText>
+      <ThemedText style={[appsStyles.emptyDescription, themedStyles.textMuted]}>
+        Agrega tu primera app y define el tiempo máximo diario que quieres
+        dedicarle.
+      </ThemedText>
       <Pressable
-        disabled={isMutating}
-        onPress={() => openEditGoalActions(app)}
-        style={[appsStyles.swipeActionButton, themedStyles.swipeActionEdit]}>
-        <ThemedText style={themedStyles.textOnPrimary}>Editar meta</ThemedText>
-      </Pressable>
-      <Pressable
-        disabled={isMutating || !app.isActive}
-        onPress={() => {
-          void handleToggleApp(app.id, false);
-        }}
-        style={[appsStyles.swipeActionButton, themedStyles.swipeActionDeactivate]}>
-        <ThemedText style={themedStyles.textOnPrimary}>Desactivar</ThemedText>
+        onPress={onAddFirstApp}
+        style={[
+          appsStyles.primaryButton,
+          themedStyles.primaryButton,
+          themedStyles.primaryButtonEnabled,
+        ]}
+      >
+        <ThemedText
+          style={[appsStyles.primaryButtonText, themedStyles.textOnPrimary]}
+        >
+          Agregar primera app
+        </ThemedText>
       </Pressable>
     </View>
   );
 
-  const renderItem = ({ item }: { item: ListItem }) => {
-    const usedMinutes = usedMinutesByAppId[item.id] ?? 0;
-    const goalMinutes = item.dailyGoalMinutes;
-    const progressRatio = goalMinutes > 0 ? Math.min(usedMinutes / goalMinutes, 1) : 0;
-    const progressWidth = `${Math.round(progressRatio * 100)}%` as const;
-    const isGoalMet = usedMinutes <= goalMinutes;
-    const statusMark = isGoalMet ? "✓" : "✗";
-    const usageText = `${usedMinutes} / ${goalMinutes} min`;
-
-    return (
-      <Swipeable renderRightActions={() => renderRightActions(item)}>
-        <ThemedView style={[appsStyles.appCard, themedStyles.appCard]}>
-          <View style={appsStyles.appTopRow}>
-            <View style={[appsStyles.appEmojiBubble, themedStyles.appEmojiBubble]}>
-              <ThemedText style={appsStyles.emojiText}>{item.iconEmoji || "📱"}</ThemedText>
-            </View>
-            <View style={appsStyles.appInfo}>
-              <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
-              <ThemedText style={[appsStyles.usageText, themedStyles.textSecondary]}>{usageText}</ThemedText>
-            </View>
-            <ThemedText
-              style={[
-                appsStyles.statusMark,
-                isGoalMet ? themedStyles.textSuccess : themedStyles.textError,
-              ]}>
-              {statusMark}
-            </ThemedText>
-          </View>
-
-          <View style={[appsStyles.progressTrack, themedStyles.progressTrack]}>
-            <View
-              style={[
-                appsStyles.progressFill,
-                isGoalMet ? themedStyles.progressFillGood : themedStyles.progressFillOver,
-                { width: progressWidth },
-              ]}
-            />
-          </View>
-        </ThemedView>
-      </Swipeable>
-    );
-  };
-
-  const listEmptyComponent = (
-    <ThemedView style={[appsStyles.emptyCard, themedStyles.emptyCard]}>
-      <View style={appsStyles.emptyStateContainer}>
-        <ThemedText style={appsStyles.emptyEmoji}>🎯</ThemedText>
-        <ThemedText style={appsStyles.emptyTitle}>Aún no tienes apps monitoreadas</ThemedText>
-        <ThemedText style={[appsStyles.emptyDescription, themedStyles.textMuted]}>
-          Agrega tu primera app y define el tiempo máximo diario.
-        </ThemedText>
-        <Pressable
-          onPress={onAddFirstApp}
-          style={[appsStyles.primaryButton, themedStyles.primaryButton, themedStyles.primaryButtonEnabled]}>
-          <ThemedText style={[appsStyles.primaryButtonText, themedStyles.textOnPrimary]}>
-            Agregar primera app
-          </ThemedText>
-        </Pressable>
-      </View>
-    </ThemedView>
-  );
-
   return (
     <FlatList
-      ref={ref}
       data={apps}
       keyExtractor={(item) => String(item.id)}
       refreshing={isHydrating}
       onRefresh={() => {
+        closeOpenSwipeable();
         void onRefresh();
       }}
       ListHeaderComponent={listHeaderComponent}
@@ -179,6 +216,7 @@ export const ListSection = forwardRef<FlatList<ListItem>, ListSectionProps>(func
       renderItem={renderItem}
       contentContainerStyle={appsStyles.listContentContainer}
       showsVerticalScrollIndicator={false}
+      onScrollBeginDrag={closeOpenSwipeable}
     />
   );
-});
+};

@@ -6,13 +6,13 @@ import {
   TextInput,
   View,
 } from "react-native";
+import Slider from "@react-native-community/slider";
 
 import {
   appsStyles,
   type ThemedStyles,
 } from "@/components/screens/Apps/apps-styles";
 import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
 import type { AddAppPayload } from "@/hooks/use-apps";
 import {
   APP_GOAL_MAX_MINUTES,
@@ -31,6 +31,7 @@ interface AddSectionProps {
   primaryTextColor: string;
   themedStyles: ThemedStyles;
   onAddApp: (payload: AddAppPayload) => Promise<void>;
+  onAdded?: () => void;
 }
 
 export function AddSection({
@@ -41,17 +42,24 @@ export function AddSection({
   primaryTextColor,
   themedStyles,
   onAddApp,
+  onAdded,
 }: AddSectionProps) {
   const [nameInput, setNameInput] = useState("");
   const [emojiInput, setEmojiInput] = useState("");
   const [goalInput, setGoalInput] = useState("30");
+  const goalFromInput = parseGoal(goalInput);
+  const selectedPresetIndex = Math.max(0, GOAL_PRESETS.indexOf(goalFromInput));
+  const selectedPreset = GOAL_PRESETS[selectedPresetIndex];
 
   const canAddMoreApps = activeAppsCount < maxActiveApps;
 
   const handleAddApp = async () => {
     const parsedGoal = parseGoal(goalInput);
     if (!Number.isInteger(parsedGoal)) {
-      Alert.alert("Tiempo inválido", "Ingresa el tiempo máximo diario en minutos.");
+      Alert.alert(
+        "Tiempo inválido",
+        "Ingresa el tiempo máximo diario en minutos.",
+      );
       return;
     }
 
@@ -64,6 +72,7 @@ export function AddSection({
       setNameInput("");
       setEmojiInput("");
       setGoalInput("30");
+      onAdded?.();
     } catch (appError) {
       const message =
         appError instanceof Error
@@ -74,7 +83,7 @@ export function AddSection({
   };
 
   return (
-    <ThemedView style={[appsStyles.addCard, themedStyles.addCard]}>
+    <View style={appsStyles.formContainer}>
       <View style={appsStyles.sectionTitleRow}>
         <ThemedText type="label">Agregar nueva app</ThemedText>
         <ThemedText style={[appsStyles.helperText, themedStyles.textMuted]}>
@@ -104,40 +113,49 @@ export function AddSection({
         value={goalInput}
         onChangeText={setGoalInput}
         keyboardType="number-pad"
-        placeholder={`Tiempo máximo que usarás la app por día (${APP_GOAL_MIN_MINUTES}-${APP_GOAL_MAX_MINUTES} min)`}
+        placeholder={`Tiempo máximo (${APP_GOAL_MIN_MINUTES}-${APP_GOAL_MAX_MINUTES} min)`}
         style={[appsStyles.input, themedStyles.input]}
         placeholderTextColor={placeholderTextColor}
       />
 
-      <View style={appsStyles.presetWrap}>
-        {GOAL_PRESETS.map((preset) => {
-          const isSelected = Number(goalInput) === preset;
+      <View style={appsStyles.goalSliderWrap}>
+        <View style={appsStyles.goalSliderHeader}>
+          <ThemedText style={[appsStyles.helperText, themedStyles.textMuted]}>
+            Preset diario
+          </ThemedText>
+          <ThemedText
+            style={[appsStyles.helperText, themedStyles.textPrimary]}
+          >
+            {selectedPreset} min/día
+          </ThemedText>
+        </View>
 
-          return (
-            <Pressable
+        <Slider
+          style={appsStyles.goalSlider}
+          value={selectedPresetIndex}
+          minimumValue={0}
+          maximumValue={GOAL_PRESETS.length - 1}
+          step={1}
+          onValueChange={(value) => {
+            const preset = GOAL_PRESETS[Math.round(value)] ?? GOAL_PRESETS[0];
+            setGoalInput(String(preset));
+          }}
+        />
+
+        <View style={appsStyles.presetWrap}>
+          {GOAL_PRESETS.map((preset, index) => (
+            <ThemedText
               key={preset}
-              onPress={() => setGoalInput(String(preset))}
-              style={({ pressed }) => [
-                appsStyles.presetChip,
-                themedStyles.presetChip,
-                isSelected
-                  ? themedStyles.presetChipSelected
-                  : themedStyles.presetChipDefault,
-                pressed ? appsStyles.opacityPressed85 : null,
-              ]}
+              style={
+                index === selectedPresetIndex
+                  ? themedStyles.presetChipTextSelected
+                  : themedStyles.presetChipTextDefault
+              }
             >
-              <ThemedText
-                style={
-                  isSelected
-                    ? themedStyles.presetChipTextSelected
-                    : themedStyles.presetChipTextDefault
-                }
-              >
-                {preset} min/día
-              </ThemedText>
-            </Pressable>
-          );
-        })}
+              {preset}
+            </ThemedText>
+          ))}
+        </View>
       </View>
 
       <Pressable
@@ -168,6 +186,6 @@ export function AddSection({
           Ya alcanzaste el límite de {maxActiveApps} apps activas.
         </ThemedText>
       ) : null}
-    </ThemedView>
+    </View>
   );
 }

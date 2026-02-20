@@ -1,11 +1,8 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useNavigation, useRouter } from "expo-router";
+import { useCallback, useLayoutEffect, useMemo } from "react";
 import { Pressable, View } from "react-native";
-import { useNavigation } from "expo-router";
-import type { FlatList } from "react-native";
 
 import {
-  AddSection,
-  HeroSection,
   ListSection,
   appsStyles,
   createThemedStyles,
@@ -16,8 +13,8 @@ import { useApps } from "@/hooks/use-apps";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function AppsScreen() {
+  const router = useRouter();
   const navigation = useNavigation();
-  const listRef = useRef<FlatList<ListItem>>(null);
   const { colors, radius, shadow, spacing } = useTheme();
   const themedStyles = useMemo(
     () => createThemedStyles(colors, radius, shadow, spacing),
@@ -26,20 +23,14 @@ export default function AppsScreen() {
   const {
     apps,
     todayLogs,
-    activeAppsCount,
-    maxActiveApps,
     isHydrating,
     isMutating,
     error,
     refresh,
-    addApp,
     updateApp,
     toggleApp,
   } = useApps();
-  const activeStatusText = useMemo(
-    () => `${activeAppsCount}/${maxActiveApps} apps activas`,
-    [activeAppsCount, maxActiveApps],
-  );
+
   const usedMinutesByAppId = useMemo(() => {
     const minutesByApp: Record<number, number> = {};
     for (const log of todayLogs) {
@@ -49,73 +40,56 @@ export default function AppsScreen() {
     return minutesByApp;
   }, [todayLogs]);
 
-  const scrollToTop = () => {
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  };
+  const openAddModal = useCallback(() => {
+    router.push("/modal");
+  }, [router]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "Mis Apps",
-      headerRight: () => (
-        <Pressable
-          onPress={scrollToTop}
-          style={({ pressed }) => [
-            {
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: colors.primary,
-              opacity: pressed ? 0.85 : 1,
-            },
-          ]}>
-          <ThemedText style={{ color: colors.onPrimary, fontWeight: "700", fontSize: 18 }}>+</ThemedText>
-        </Pressable>
-      ),
+      headerShadowVisible: false,
+      headerStyle: { backgroundColor: colors.background },
+      headerTitleStyle: {
+        color: colors.text,
+        fontSize: 20,
+        fontWeight: "700",
+      },
     });
-  }, [colors.onPrimary, colors.primary, navigation]);
+  }, [colors.text, colors.background, navigation]);
 
   return (
     <View style={[appsStyles.container, themedStyles.container]}>
       <ListSection
-        ref={listRef}
         apps={apps as ListItem[]}
         usedMinutesByAppId={usedMinutesByAppId}
         isHydrating={isHydrating}
         isMutating={isMutating}
         themedStyles={themedStyles}
         onRefresh={refresh}
-        onAddFirstApp={scrollToTop}
+        onAddFirstApp={openAddModal}
         listHeaderComponent={
-          <>
-            <HeroSection
-              activeAppsCount={activeAppsCount}
-              maxActiveApps={maxActiveApps}
-              activeStatusText={activeStatusText}
-              themedStyles={themedStyles}
-            />
-
-            <AddSection
-              activeAppsCount={activeAppsCount}
-              maxActiveApps={maxActiveApps}
-              isMutating={isMutating}
-              placeholderTextColor={colors.textMuted}
-              primaryTextColor={colors.onPrimary}
-              themedStyles={themedStyles}
-              onAddApp={addApp}
-            />
-
-            {error ? (
-              <ThemedText style={[appsStyles.errorText, themedStyles.textError]}>
-                {error}
-              </ThemedText>
-            ) : null}
-          </>
+          error ? (
+            <ThemedText style={[appsStyles.errorText, themedStyles.textError]}>
+              {error}
+            </ThemedText>
+          ) : null
         }
         onUpdateApp={updateApp}
         onToggleApp={toggleApp}
       />
+
+      <Pressable
+        onPress={openAddModal}
+        style={({ pressed }) => [
+          appsStyles.fab,
+          themedStyles.fab,
+          pressed && appsStyles.opacityPressed85,
+        ]}
+      >
+        <ThemedText style={[appsStyles.fabIcon, themedStyles.textOnPrimary]}>
+          +
+        </ThemedText>
+      </Pressable>
     </View>
   );
 }
