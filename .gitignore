@@ -45,3 +45,4 @@ app-example
 
 .agents/
 .cursor/
+.context/

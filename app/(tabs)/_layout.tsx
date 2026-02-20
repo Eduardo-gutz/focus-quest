@@ -36,6 +36,7 @@ export default function TabLayout() {
         name="Apps"
         options={{
           title: "Apps",
+          headerShown: true,
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="app.fill" color={color} />
           ),

@@ -6,6 +6,7 @@ import { immer } from 'zustand/middleware/immer';
 
 import { db } from '@/db/client';
 import { dailySummary, monitoredApps, usageLogs } from '@/db/schema';
+import { appService } from '@/services/appService';
 
 interface CreateMonitoredAppInput {
   name: string;
@@ -33,6 +34,7 @@ type UsageLog = typeof usageLogs.$inferSelect;
 type DailySummary = typeof dailySummary.$inferSelect;
 
 interface HabitsStoreState {
+  apps: MonitoredApp[];
   activeApps: MonitoredApp[];
   todayLogs: UsageLog[];
   currentDate: string;
@@ -56,6 +58,7 @@ interface HabitsStore extends HabitsStoreState, HabitsStoreActions {}
 const getIsoDate = (): string => new Date().toISOString().slice(0, 10);
 
 const initialState: HabitsStoreState = {
+  apps: [],
   activeApps: [],
   todayLogs: [],
   currentDate: getIsoDate(),
@@ -103,13 +106,14 @@ export const useHabitsStore = create<HabitsStore>()(
 
         try {
           const [apps, logs, summary] = await Promise.all([
-            db.select().from(monitoredApps).where(eq(monitoredApps.isActive, true)),
+            appService.getApps(),
             db.select().from(usageLogs).where(eq(usageLogs.date, targetDate)),
             db.select().from(dailySummary).where(eq(dailySummary.date, targetDate)),
           ]);
 
           set((state) => {
-            state.activeApps = apps;
+            state.apps = apps;
+            state.activeApps = apps.filter((app) => app.isActive);
             state.todayLogs = logs;
             state.dailySummarySnapshot = summary[0] ?? null;
             state.currentDate = targetDate;
@@ -125,52 +129,38 @@ export const useHabitsStore = create<HabitsStore>()(
       },
       addMonitoredApp: async (input) => {
         try {
-          await db.insert(monitoredApps).values({
-            name: input.name,
-            packageName: input.packageName ?? null,
-            iconEmoji: input.iconEmoji ?? null,
-            dailyGoalMinutes: input.dailyGoalMinutes,
-            isActive: true,
-          });
+          await appService.addApp(input);
           await get().hydrateToday(get().currentDate);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to create monitored app';
           set((state) => {
             state.error = message;
           });
+          throw error instanceof Error ? error : new Error(message);
         }
       },
       updateMonitoredApp: async (appId, input) => {
         try {
-          await db
-            .update(monitoredApps)
-            .set({
-              name: input.name,
-              packageName: input.packageName,
-              iconEmoji: input.iconEmoji,
-              dailyGoalMinutes: input.dailyGoalMinutes,
-            })
-            .where(eq(monitoredApps.id, appId));
+          await appService.updateApp(appId, input);
           await get().hydrateToday(get().currentDate);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to update monitored app';
           set((state) => {
             state.error = message;
           });
+          throw error instanceof Error ? error : new Error(message);
         }
       },
       setAppActive: async (appId, isActive) => {
         try {
-          await db
-            .update(monitoredApps)
-            .set({ isActive })
-            .where(eq(monitoredApps.id, appId));
+          await appService.toggleApp(appId, isActive);
           await get().hydrateToday(get().currentDate);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to update app status';
           set((state) => {
             state.error = message;
           });
+          throw error instanceof Error ? error : new Error(message);
         }
       },
       logUsage: async (input) => {
@@ -249,6 +239,7 @@ export const useHabitsStore = create<HabitsStore>()(
       version: 1,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
+        apps: state.apps,
         activeApps: state.activeApps,
         todayLogs: state.todayLogs,
         currentDate: state.currentDate,
