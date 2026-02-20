@@ -1,11 +1,24 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
+import { useTheme } from '@/hooks/use-theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+  type?:
+    | 'default'
+    | 'title'
+    | 'defaultSemiBold'
+    | 'subtitle'
+    | 'link'
+    | 'heading1'
+    | 'heading2'
+    | 'heading3'
+    | 'heading4'
+    | 'body'
+    | 'caption'
+    | 'label';
 };
 
 export function ThemedText({
@@ -15,6 +28,7 @@ export function ThemedText({
   type = 'default',
   ...rest
 }: ThemedTextProps) {
+  const { colors, typography } = useTheme();
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
   return (
@@ -25,7 +39,14 @@ export function ThemedText({
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        type === 'link' ? [typography.body, styles.link, { color: colors.link }] : undefined,
+        type === 'heading1' ? typography.heading1 : undefined,
+        type === 'heading2' ? typography.heading2 : undefined,
+        type === 'heading3' ? typography.heading3 : undefined,
+        type === 'heading4' ? typography.heading4 : undefined,
+        type === 'body' ? typography.body : undefined,
+        type === 'caption' ? typography.caption : undefined,
+        type === 'label' ? typography.label : undefined,
         style,
       ]}
       {...rest}
@@ -54,7 +75,6 @@ const styles = StyleSheet.create({
   },
   link: {
     lineHeight: 30,
-    fontSize: 16,
-    color: '#0a7ea4',
+    textDecorationLine: 'underline',
   },
 });
