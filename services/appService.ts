@@ -32,6 +32,7 @@ interface AppServiceDatabaseLike {
   select: typeof db.select;
   insert: typeof db.insert;
   update: typeof db.update;
+  delete: typeof db.delete;
 }
 
 const normalizeName = (name: string): string => name.trim();
@@ -144,6 +145,20 @@ export const appService = {
     await database
       .update(monitoredApps)
       .set({ isActive })
+      .where(eq(monitoredApps.id, appId));
+  },
+
+  async deleteApp(appId: number, database: AppServiceDatabaseLike = db): Promise<void> {
+    const appRows = await database
+      .select({ id: monitoredApps.id })
+      .from(monitoredApps)
+      .where(eq(monitoredApps.id, appId));
+
+    if (!appRows[0])
+      throw new Error('Monitored app not found');
+
+    await database
+      .delete(monitoredApps)
       .where(eq(monitoredApps.id, appId));
   },
 };

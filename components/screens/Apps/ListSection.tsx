@@ -7,8 +7,9 @@ import { ThemedText } from "@/components/themed-text";
 import { SwipeActions } from "@/components/ui/SwipeActions";
 import type { UpdateAppPayload } from "@/hooks/use-apps";
 import Feather from "@expo/vector-icons/Feather";
-import { type ReactElement, useRef } from "react";
-import { Alert, FlatList, Pressable, View } from "react-native";
+import { useRouter } from "expo-router";
+import { type ReactElement, useMemo, useRef } from "react";
+import { Alert, Pressable, SectionList, View } from "react-native";
 
 export interface ListItem {
   id: number;
@@ -16,6 +17,12 @@ export interface ListItem {
   iconEmoji: string | null;
   dailyGoalMinutes: number;
   isActive: boolean;
+}
+
+interface AppSection {
+  key: "active" | "inactive";
+  title: string;
+  data: ListItem[];
 }
 
 interface ListSectionProps {
@@ -29,6 +36,7 @@ interface ListSectionProps {
   listHeaderComponent?: ReactElement | null;
   onUpdateApp: (appId: number, payload: UpdateAppPayload) => Promise<void>;
   onToggleApp: (appId: number, value: boolean) => Promise<void>;
+  onDeleteApp: (appId: number) => Promise<void>;
 }
 
 export const ListSection = ({
@@ -42,11 +50,27 @@ export const ListSection = ({
   listHeaderComponent,
   onUpdateApp,
   onToggleApp,
+  onDeleteApp,
 }: ListSectionProps) => {
+  const router = useRouter();
   const openSwipeableRef = useRef<{
     itemId: number;
     close: () => void;
   } | null>(null);
+
+  const sections = useMemo<AppSection[]>(() => {
+    const active = apps.filter((a) => a.isActive);
+    const inactive = apps.filter((a) => !a.isActive);
+
+    const result: AppSection[] = [];
+    if (active.length > 0) {
+      result.push({ key: "active", title: "Activas", data: active });
+    }
+    if (inactive.length > 0) {
+      result.push({ key: "inactive", title: "Inactivas", data: inactive });
+    }
+    return result;
+  }, [apps]);
 
   const closeOpenSwipeable = () => {
     if (!openSwipeableRef.current) {
@@ -90,32 +114,18 @@ export const ListSection = ({
     closeOpenSwipeable();
   };
 
-  const handleUpdateGoal = async (app: ListItem, nextGoal: number) => {
-    try {
-      await onUpdateApp(app.id, { dailyGoalMinutes: nextGoal });
-      closeOpenSwipeable();
-    } catch (appError) {
-      const message =
-        appError instanceof Error
-          ? appError.message
-          : "No se pudo actualizar el tiempo máximo";
-      Alert.alert("No se pudo guardar", message);
-    }
-  };
-
-  const openEditGoalActions = (app: ListItem) => {
-    const presets = [15, 30, 45, 60, app.dailyGoalMinutes];
-    const uniquePresets = [...new Set(presets)].sort((a, b) => a - b);
-    const buttons = uniquePresets.map((value) => ({
-      text: `${value} min/día`,
-      onPress: () => handleUpdateGoal(app, value),
-    }));
-
-    Alert.alert(
-      `Editar tiempo de ${app.name}`,
-      "Selecciona un nuevo tiempo máximo diario:",
-      [...buttons, { text: "Cancelar", style: "cancel" }],
-    );
+  const openEditAppModal = (app: ListItem) => {
+    router.push({
+      pathname: "/modal",
+      params: {
+        mode: "edit",
+        appId: String(app.id),
+        name: app.name,
+        iconEmoji: app.iconEmoji ?? "",
+        dailyGoalMinutes: String(app.dailyGoalMinutes),
+      },
+    });
+    closeOpenSwipeable();
   };
 
   const handleToggleApp = async (appId: number, value: boolean) => {
@@ -130,7 +140,33 @@ export const ListSection = ({
     }
   };
 
-  const renderRightActions = (app: ListItem) => (
+  const handleDeleteApp = (app: ListItem) => {
+    Alert.alert(
+      "Eliminar app",
+      `¿Estás seguro de que quieres eliminar "${app.name}"? Se borrarán todos sus registros de uso. Esta acción no se puede deshacer.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await onDeleteApp(app.id);
+            } catch (appError) {
+              const message =
+                appError instanceof Error
+                  ? appError.message
+                  : "No se pudo eliminar la app";
+              Alert.alert("Error", message);
+            }
+          },
+        },
+      ],
+    );
+    closeOpenSwipeable();
+  };
+
+  const renderActiveRightActions = (app: ListItem) => (
     <SwipeActions
       actions={[
         {
@@ -143,19 +179,19 @@ export const ListSection = ({
             />
           ),
           disabled: isMutating,
-          onPress: () => openEditGoalActions(app),
+          onPress: () => openEditAppModal(app),
           buttonStyle: themedStyles.swipeActionEdit,
         },
         {
           id: `deactivate-${app.id}`,
           label: (
             <Feather
-              name="trash-2"
+              name="eye-off"
               size={24}
               color={themedStyles.textOnPrimary.color}
             />
           ),
-          disabled: isMutating || !app.isActive,
+          disabled: isMutating,
           onPress: () => handleToggleApp(app.id, false),
           buttonStyle: themedStyles.swipeActionDeactivate,
         },
@@ -163,17 +199,92 @@ export const ListSection = ({
     />
   );
 
-  const renderItem = ({ item }: { item: ListItem }) => (
-    <AppListItemCard
-      item={item}
-      usedMinutes={usedMinutesByAppId[item.id] ?? 0}
-      themedStyles={themedStyles}
-      renderRightActions={renderRightActions}
-      onSwipeableWillOpen={handleSwipeableWillOpen}
-      onSwipeableClose={handleSwipeableClose}
-      onCardPress={handleCardPress}
+  const renderInactiveRightActions = (app: ListItem) => (
+    <SwipeActions
+      actions={[
+        {
+          id: `reactivate-${app.id}`,
+          label: (
+            <Feather
+              name="check-circle"
+              size={24}
+              color={themedStyles.textOnPrimary.color}
+            />
+          ),
+          disabled: isMutating,
+          onPress: () => handleToggleApp(app.id, true),
+          buttonStyle: themedStyles.swipeActionReactivate,
+        },
+        {
+          id: `delete-${app.id}`,
+          label: (
+            <Feather
+              name="trash-2"
+              size={24}
+              color={themedStyles.textOnPrimary.color}
+            />
+          ),
+          disabled: isMutating,
+          onPress: () => handleDeleteApp(app),
+          buttonStyle: themedStyles.swipeActionDeactivate,
+        },
+      ]}
     />
   );
+
+  const renderItem = ({
+    item,
+    section,
+  }: {
+    item: ListItem;
+    section: AppSection;
+  }) => (
+    <View style={section.key === "inactive" ? appsStyles.inactiveCard : null}>
+      <AppListItemCard
+        item={item}
+        usedMinutes={usedMinutesByAppId[item.id] ?? 0}
+        themedStyles={themedStyles}
+        renderRightActions={
+          section.key === "active"
+            ? renderActiveRightActions
+            : renderInactiveRightActions
+        }
+        onSwipeableWillOpen={handleSwipeableWillOpen}
+        onSwipeableClose={handleSwipeableClose}
+        onCardPress={handleCardPress}
+      />
+    </View>
+  );
+
+  const renderSectionHeader = ({ section }: { section: AppSection }) => (
+    <View style={appsStyles.sectionHeader}>
+      <ThemedText
+        style={[appsStyles.sectionHeaderTitle, themedStyles.textSecondary]}
+      >
+        {section.title}
+      </ThemedText>
+      <ThemedText
+        style={[appsStyles.sectionHeaderBadge, themedStyles.textMuted]}
+      >
+        ({section.data.length})
+      </ThemedText>
+    </View>
+  );
+
+  const renderSectionSeparator = ({
+    leadingSection,
+  }: {
+    leadingSection?: AppSection;
+  }) => {
+    if (!leadingSection || leadingSection.key !== "active") {
+      return null;
+    }
+    return (
+      <View
+        style={[appsStyles.sectionSeparator, themedStyles.sectionSeparator]}
+      />
+    );
+  };
 
   const listEmptyComponent = (
     <View style={appsStyles.emptyStateContainer}>
@@ -203,8 +314,8 @@ export const ListSection = ({
   );
 
   return (
-    <FlatList
-      data={apps}
+    <SectionList
+      sections={sections}
       keyExtractor={(item) => String(item.id)}
       refreshing={isHydrating}
       onRefresh={() => {
@@ -214,9 +325,12 @@ export const ListSection = ({
       ListHeaderComponent={listHeaderComponent}
       ListEmptyComponent={listEmptyComponent}
       renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      SectionSeparatorComponent={renderSectionSeparator}
       contentContainerStyle={appsStyles.listContentContainer}
       showsVerticalScrollIndicator={false}
       onScrollBeginDrag={closeOpenSwipeable}
+      stickySectionHeadersEnabled={false}
     />
   );
 };

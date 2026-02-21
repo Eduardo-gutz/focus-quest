@@ -163,6 +163,31 @@ export const appsStyles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  sectionHeaderTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  sectionHeaderBadge: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  sectionSeparator: {
+    height: 1,
+    marginVertical: 8,
+  },
+  inactiveCard: {
+    opacity: 0.6,
+  },
+
   errorText: {
     fontSize: 13,
   },
@@ -234,11 +259,20 @@ export function createThemedStyles(
     progressTrack: {
       backgroundColor: colors.progressTrack,
     },
-    progressFillGood: {
+    progressFillGreen: {
       backgroundColor: colors.success,
     },
-    progressFillOver: {
+    progressFillYellow: {
+      backgroundColor: colors.warning,
+    },
+    progressFillOrange: {
+      backgroundColor: "#F59E0B",
+    },
+    progressFillRed: {
       backgroundColor: colors.error,
+    },
+    sectionSeparator: {
+      backgroundColor: colors.border,
     },
     swipeActionEdit: {
       backgroundColor: colors.primary,
@@ -246,6 +280,10 @@ export function createThemedStyles(
     },
     swipeActionDeactivate: {
       backgroundColor: colors.error,
+      borderRadius: radius.md,
+    },
+    swipeActionReactivate: {
+      backgroundColor: colors.success,
       borderRadius: radius.md,
     },
     presetChipTextSelected: {

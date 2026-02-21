@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,7 @@ import {
   type ThemedStyles,
 } from "@/components/screens/Apps/apps-styles";
 import { ThemedText } from "@/components/themed-text";
-import type { AddAppPayload } from "@/hooks/use-apps";
+import type { AddAppPayload, UpdateAppPayload } from "@/hooks/use-apps";
 import {
   APP_GOAL_MAX_MINUTES,
   APP_GOAL_MIN_MINUTES,
@@ -30,7 +30,15 @@ interface AddSectionProps {
   placeholderTextColor: string;
   primaryTextColor: string;
   themedStyles: ThemedStyles;
+  mode?: "create" | "edit";
+  editAppId?: number;
+  initialValues?: {
+    name: string;
+    iconEmoji?: string | null;
+    dailyGoalMinutes: number;
+  };
   onAddApp: (payload: AddAppPayload) => Promise<void>;
+  onUpdateApp?: (appId: number, payload: UpdateAppPayload) => Promise<void>;
   onAdded?: () => void;
 }
 
@@ -41,19 +49,32 @@ export function AddSection({
   placeholderTextColor,
   primaryTextColor,
   themedStyles,
+  mode = "create",
+  editAppId,
+  initialValues,
   onAddApp,
+  onUpdateApp,
   onAdded,
 }: AddSectionProps) {
-  const [nameInput, setNameInput] = useState("");
-  const [emojiInput, setEmojiInput] = useState("");
-  const [goalInput, setGoalInput] = useState("30");
+  const isEditMode = mode === "edit";
+  const [nameInput, setNameInput] = useState(initialValues?.name ?? "");
+  const [emojiInput, setEmojiInput] = useState(initialValues?.iconEmoji ?? "");
+  const [goalInput, setGoalInput] = useState(
+    String(initialValues?.dailyGoalMinutes ?? 30),
+  );
   const goalFromInput = parseGoal(goalInput);
   const selectedPresetIndex = Math.max(0, GOAL_PRESETS.indexOf(goalFromInput));
   const selectedPreset = GOAL_PRESETS[selectedPresetIndex];
-
   const canAddMoreApps = activeAppsCount < maxActiveApps;
+  const canSubmit = isEditMode ? true : canAddMoreApps;
 
-  const handleAddApp = async () => {
+  useEffect(() => {
+    setNameInput(initialValues?.name ?? "");
+    setEmojiInput(initialValues?.iconEmoji ?? "");
+    setGoalInput(String(initialValues?.dailyGoalMinutes ?? 30));
+  }, [initialValues?.dailyGoalMinutes, initialValues?.iconEmoji, initialValues?.name]);
+
+  const handleSubmit = async () => {
     const parsedGoal = parseGoal(goalInput);
     if (!Number.isInteger(parsedGoal)) {
       Alert.alert(
@@ -64,20 +85,35 @@ export function AddSection({
     }
 
     try {
-      await onAddApp({
-        name: nameInput,
-        iconEmoji: emojiInput.trim() || null,
-        dailyGoalMinutes: parsedGoal,
-      });
-      setNameInput("");
-      setEmojiInput("");
-      setGoalInput("30");
+      if (isEditMode) {
+        if (!onUpdateApp || !editAppId) {
+          Alert.alert("No se pudo guardar", "No se pudo identificar la app a editar.");
+          return;
+        }
+
+        await onUpdateApp(editAppId, {
+          name: nameInput,
+          iconEmoji: emojiInput.trim() || null,
+          dailyGoalMinutes: parsedGoal,
+        });
+      } else {
+        await onAddApp({
+          name: nameInput,
+          iconEmoji: emojiInput.trim() || null,
+          dailyGoalMinutes: parsedGoal,
+        });
+        setNameInput("");
+        setEmojiInput("");
+        setGoalInput("30");
+      }
       onAdded?.();
     } catch (appError) {
       const message =
         appError instanceof Error
           ? appError.message
-          : "No se pudo agregar la app";
+          : isEditMode
+            ? "No se pudo editar la app"
+            : "No se pudo agregar la app";
       Alert.alert("No se pudo guardar", message);
     }
   };
@@ -85,9 +121,13 @@ export function AddSection({
   return (
     <View style={appsStyles.formContainer}>
       <View style={appsStyles.sectionTitleRow}>
-        <ThemedText type="label">Agregar nueva app</ThemedText>
+        <ThemedText type="label">
+          {isEditMode ? "Editar app" : "Agregar nueva app"}
+        </ThemedText>
         <ThemedText style={[appsStyles.helperText, themedStyles.textMuted]}>
-          Puedes tener hasta {maxActiveApps} apps activas
+          {isEditMode
+            ? "Actualiza nombre, emoji y tiempo máximo diario"
+            : `Puedes tener hasta ${maxActiveApps} apps activas`}
         </ThemedText>
       </View>
 
@@ -159,12 +199,12 @@ export function AddSection({
       </View>
 
       <Pressable
-        onPress={() => void handleAddApp()}
-        disabled={isMutating || !canAddMoreApps}
+        onPress={() => void handleSubmit()}
+        disabled={isMutating || !canSubmit}
         style={({ pressed }) => [
           appsStyles.primaryButton,
           themedStyles.primaryButton,
-          isMutating || !canAddMoreApps
+          isMutating || !canSubmit
             ? themedStyles.primaryButtonDisabled
             : themedStyles.primaryButtonEnabled,
           pressed ? appsStyles.opacityPressed90 : null,
@@ -176,12 +216,12 @@ export function AddSection({
           <ThemedText
             style={[appsStyles.primaryButtonText, themedStyles.textOnPrimary]}
           >
-            Agregar app
+            {isEditMode ? "Guardar cambios" : "Agregar app"}
           </ThemedText>
         )}
       </Pressable>
 
-      {!canAddMoreApps ? (
+      {!canAddMoreApps && !isEditMode ? (
         <ThemedText style={[appsStyles.errorText, themedStyles.textError]}>
           Ya alcanzaste el límite de {maxActiveApps} apps activas.
         </ThemedText>

@@ -29,6 +29,7 @@ export default function AppsScreen() {
     refresh,
     updateApp,
     toggleApp,
+    deleteApp,
   } = useApps();
 
   const usedMinutesByAppId = useMemo(() => {
@@ -76,6 +77,7 @@ export default function AppsScreen() {
         }
         onUpdateApp={updateApp}
         onToggleApp={toggleApp}
+        onDeleteApp={deleteApp}
       />
 
       <Pressable

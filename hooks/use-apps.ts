@@ -26,6 +26,7 @@ export const useApps = () => {
   const addMonitoredApp = useHabitsStore((state) => state.addMonitoredApp);
   const updateMonitoredApp = useHabitsStore((state) => state.updateMonitoredApp);
   const setAppActive = useHabitsStore((state) => state.setAppActive);
+  const deleteMonitoredApp = useHabitsStore((state) => state.deleteMonitoredApp);
   const clearError = useHabitsStore((state) => state.clearError);
   const [isMutating, setIsMutating] = useState(false);
 
@@ -69,6 +70,16 @@ export const useApps = () => {
     }
   }, [clearError, setAppActive]);
 
+  const deleteApp = useCallback(async (appId: number) => {
+    setIsMutating(true);
+    clearError();
+    try {
+      await deleteMonitoredApp(appId);
+    } finally {
+      setIsMutating(false);
+    }
+  }, [clearError, deleteMonitoredApp]);
+
   return {
     apps,
     todayLogs,
@@ -81,6 +92,7 @@ export const useApps = () => {
     addApp,
     updateApp,
     toggleApp,
+    deleteApp,
     clearError,
   };
 };

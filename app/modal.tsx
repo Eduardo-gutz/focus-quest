@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -8,12 +8,29 @@ import { useTheme } from "@/hooks/use-theme";
 
 export default function ModalScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    mode?: string;
+    appId?: string;
+    name?: string;
+    iconEmoji?: string;
+    dailyGoalMinutes?: string;
+  }>();
   const { colors, radius, shadow, spacing } = useTheme();
   const themedStyles = useMemo(
     () => createThemedStyles(colors, radius, shadow, spacing),
     [colors, radius, shadow, spacing],
   );
-  const { activeAppsCount, maxActiveApps, isMutating, addApp } = useApps();
+  const { activeAppsCount, maxActiveApps, isMutating, addApp, updateApp } = useApps();
+  const isEditMode = params.mode === "edit";
+  const editAppId = Number.parseInt(params.appId ?? "", 10);
+  const initialGoal = Number.parseInt(params.dailyGoalMinutes ?? "", 10);
+  const initialValues = isEditMode
+    ? {
+        name: params.name ?? "",
+        iconEmoji: params.iconEmoji ?? "",
+        dailyGoalMinutes: Number.isFinite(initialGoal) ? initialGoal : 30,
+      }
+    : undefined;
 
   const dismiss = () => router.back();
 
@@ -90,7 +107,11 @@ export default function ModalScreen() {
             placeholderTextColor={colors.textMuted}
             primaryTextColor={colors.onPrimary}
             themedStyles={themedStyles}
+            mode={isEditMode ? "edit" : "create"}
+            editAppId={Number.isFinite(editAppId) ? editAppId : undefined}
+            initialValues={initialValues}
             onAddApp={addApp}
+            onUpdateApp={updateApp}
             onAdded={dismiss}
           />
         </ScrollView>

@@ -15,10 +15,7 @@ interface AppListItemCardProps {
   usedMinutes: number;
   themedStyles: ThemedStyles;
   renderRightActions: (item: ListItem) => React.ReactNode;
-  onSwipeableWillOpen?: (
-    itemId: number,
-    swipeable: Swipeable | null,
-  ) => void;
+  onSwipeableWillOpen?: (itemId: number, swipeable: Swipeable | null) => void;
   onSwipeableClose?: (itemId: number) => void;
   onCardPress?: (itemId: number) => void;
 }
@@ -36,9 +33,18 @@ export function AppListItemCard({
   const goalMinutes = item.dailyGoalMinutes;
   const progressRatio =
     goalMinutes > 0 ? Math.min(usedMinutes / goalMinutes, 1) : 0;
-  const progressWidth = `${Math.round(progressRatio * 100)}%` as const;
+  const progressPercentage = progressRatio * 100;
+  const progressWidth = `${Math.round(progressPercentage)}%` as const;
   const isGoalMet = usedMinutes <= goalMinutes;
   const statusMark = isGoalMet ? "✓" : "✗";
+  const progressFillStyle =
+    progressPercentage < 60
+      ? themedStyles.progressFillGreen
+      : progressPercentage < 85
+        ? themedStyles.progressFillYellow
+        : progressPercentage < 100
+          ? themedStyles.progressFillOrange
+          : themedStyles.progressFillRed;
 
   return (
     <Swipeable
@@ -89,9 +95,7 @@ export function AppListItemCard({
             <View
               style={[
                 appsStyles.progressFill,
-                isGoalMet
-                  ? themedStyles.progressFillGood
-                  : themedStyles.progressFillOver,
+                progressFillStyle,
                 { width: progressWidth },
               ]}
             />

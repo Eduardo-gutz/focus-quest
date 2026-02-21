@@ -48,6 +48,7 @@ interface HabitsStoreActions {
   addMonitoredApp: (input: CreateMonitoredAppInput) => Promise<void>;
   updateMonitoredApp: (appId: number, input: UpdateMonitoredAppInput) => Promise<void>;
   setAppActive: (appId: number, isActive: boolean) => Promise<void>;
+  deleteMonitoredApp: (appId: number) => Promise<void>;
   logUsage: (input: LogUsageInput) => Promise<void>;
   refreshDailySummary: (date?: string) => Promise<DailySummary | null>;
   clearError: () => void;
@@ -157,6 +158,18 @@ export const useHabitsStore = create<HabitsStore>()(
           await get().hydrateToday(get().currentDate);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to update app status';
+          set((state) => {
+            state.error = message;
+          });
+          throw error instanceof Error ? error : new Error(message);
+        }
+      },
+      deleteMonitoredApp: async (appId) => {
+        try {
+          await appService.deleteApp(appId);
+          await get().hydrateToday(get().currentDate);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Failed to delete monitored app';
           set((state) => {
             state.error = message;
           });
