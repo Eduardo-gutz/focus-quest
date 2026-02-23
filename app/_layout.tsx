@@ -1,5 +1,5 @@
 import { expoDb } from "@/db/client";
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useResolvedColorScheme } from "@/hooks/use-resolved-color-scheme";
 import { init as initDatabase } from "@/services/database";
 import {
   Inter_400Regular,
@@ -29,7 +29,7 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const colorScheme = useResolvedColorScheme();
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -138,8 +138,15 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="settings"
+            options={{
+              presentation: "card",
+              title: "Configuración",
+            }}
+          />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </ThemeProvider>
     </GestureHandlerRootView>
   );

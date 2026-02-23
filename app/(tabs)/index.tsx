@@ -1,8 +1,9 @@
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { Pressable, RefreshControl, ScrollView, View } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 import Animated, { FadeIn } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   DashboardHeader,
@@ -18,6 +19,7 @@ import { useDashboard } from "@/hooks/use-dashboard";
 import { useTheme } from "@/hooks/use-theme";
 
 export default function HomeScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors, radius, shadow } = useTheme();
   const themedStyles = useMemo(
@@ -51,7 +53,7 @@ export default function HomeScreen() {
   }, [router]);
 
   return (
-    <View style={[homeStyles.container, themedStyles.container]}>
+    <View style={[homeStyles.container, themedStyles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <Animated.View entering={FadeIn.duration(320)} style={homeStyles.container}>
         <ScrollView
           contentContainerStyle={homeStyles.contentContainer}

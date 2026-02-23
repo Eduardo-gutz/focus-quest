@@ -1,5 +1,5 @@
 import { Colors, Radius, Shadows, Spacing, ThemeName, Typography } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useResolvedColorScheme } from '@/hooks/use-resolved-color-scheme';
 
 export interface ThemeTokens {
   name: ThemeName;
@@ -11,7 +11,7 @@ export interface ThemeTokens {
 }
 
 export const useTheme = (): ThemeTokens => {
-  const scheme = useColorScheme() ?? 'light';
+  const scheme = useResolvedColorScheme() ?? 'light';
   const name: ThemeName = scheme in Colors ? (scheme as ThemeName) : 'light';
 
   return {

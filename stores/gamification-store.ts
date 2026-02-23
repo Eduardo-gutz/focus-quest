@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
+import { XP_ACHIEVEMENT_UNLOCK, xpNeededForLevel as xpNeededForLevelFormula } from '@/constants/gamification';
 import { db } from '@/db/client';
 import { achievements, dailySummary, monitoredApps, usageLogs, userStats } from '@/db/schema';
 
@@ -12,6 +13,8 @@ interface GamificationStoreState {
   currentLevel: number;
   currentStreak: number;
   longestStreak: number;
+  totalDaysTracked: number;
+  totalGoalsMet: number;
   unlockedAchievementIds: string[];
   lastXpGain: number;
   isHydrating: boolean;
@@ -30,11 +33,9 @@ interface GamificationStore extends GamificationStoreState, GamificationStoreAct
 
 const getIsoDate = (): string => new Date().toISOString().slice(0, 10);
 
-const xpNeededForLevel = (level: number): number => Math.round(100 * Math.pow(level, 1.5));
-
 const levelFromXp = (xp: number): number => {
   let level = 1;
-  while (xp >= xpNeededForLevel(level))
+  while (xp >= xpNeededForLevelFormula(level))
     level += 1;
   return Math.max(1, level);
 };
@@ -44,6 +45,8 @@ const initialState: GamificationStoreState = {
   currentLevel: 1,
   currentStreak: 0,
   longestStreak: 0,
+  totalDaysTracked: 0,
+  totalGoalsMet: 0,
   unlockedAchievementIds: [],
   lastXpGain: 0,
   isHydrating: false,
@@ -191,6 +194,8 @@ export const useGamificationStore = create<GamificationStore>()(
             state.currentLevel = stats.currentLevel;
             state.currentStreak = stats.currentStreak;
             state.longestStreak = stats.longestStreak;
+            state.totalDaysTracked = stats.totalDaysTracked;
+            state.totalGoalsMet = stats.totalGoalsMet;
             state.unlockedAchievementIds = unlockedRows.map((item) => item.id);
             state.isHydrating = false;
           });
@@ -259,7 +264,7 @@ export const useGamificationStore = create<GamificationStore>()(
             );
           }
 
-          const xpFromUnlocks = newUnlocks.length * 100;
+          const xpFromUnlocks = newUnlocks.length * XP_ACHIEVEMENT_UNLOCK;
           if (xpFromUnlocks > 0)
             await get().grantXp(xpFromUnlocks);
 
@@ -270,6 +275,8 @@ export const useGamificationStore = create<GamificationStore>()(
             state.currentLevel = refreshedStats.currentLevel;
             state.currentStreak = refreshedStats.currentStreak;
             state.longestStreak = refreshedStats.longestStreak;
+            state.totalDaysTracked = refreshedStats.totalDaysTracked;
+            state.totalGoalsMet = refreshedStats.totalGoalsMet;
             state.unlockedAchievementIds = refreshedUnlocked.map((row) => row.id);
           });
 

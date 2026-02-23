@@ -27,6 +27,8 @@ describe('gamification store', () => {
       currentLevel: 1,
       currentStreak: 0,
       longestStreak: 0,
+      totalDaysTracked: 0,
+      totalGoalsMet: 0,
       unlockedAchievementIds: [],
       lastXpGain: 0,
       isHydrating: false,

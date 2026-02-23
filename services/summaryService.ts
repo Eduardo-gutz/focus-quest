@@ -5,6 +5,10 @@ import { dailySummary, monitoredApps, usageLogs } from '@/db/schema';
 
 type DailySummaryRow = typeof dailySummary.$inferSelect;
 
+export interface DailySummaryWithCompletion extends DailySummaryRow {
+  isCompleteDay: boolean;
+}
+
 interface SummaryServiceDatabaseLike {
   select: typeof db.select;
   insert: typeof db.insert;
@@ -13,12 +17,13 @@ interface SummaryServiceDatabaseLike {
 interface UpsertDailySummaryInput {
   date: string;
   xpEarnedDelta?: number;
+  streakDayOverride?: number;
 }
 
 const calculateDailySummary = async (
   date: string,
   database: SummaryServiceDatabaseLike,
-): Promise<DailySummaryRow> => {
+): Promise<DailySummaryWithCompletion> => {
   const [apps, logs] = await Promise.all([
     database.select().from(monitoredApps).where(eq(monitoredApps.isActive, true)),
     database.select().from(usageLogs).where(eq(usageLogs.date, date)),
@@ -26,11 +31,11 @@ const calculateDailySummary = async (
 
   const totalMinutesUsed = logs.reduce((sum, log) => sum + log.minutesUsed, 0);
   const totalMinutesGoal = apps.reduce((sum, app) => sum + app.dailyGoalMinutes, 0);
-  const allGoalsMet = apps.length > 0 && apps.every((app) => {
+  const isCompleteDay = apps.length > 0 && apps.every((app) =>
+    logs.some((log) => log.appId === app.id),
+  );
+  const allGoalsMet = isCompleteDay && apps.every((app) => {
     const appLogs = logs.filter((log) => log.appId === app.id);
-    if (appLogs.length === 0)
-      return false;
-
     const appTotalMinutes = appLogs.reduce((sum, log) => sum + log.minutesUsed, 0);
     return appTotalMinutes <= app.dailyGoalMinutes;
   });
@@ -42,6 +47,7 @@ const calculateDailySummary = async (
     allGoalsMet,
     xpEarned: 0,
     streakDay: 0,
+    isCompleteDay,
   };
 };
 
@@ -49,7 +55,7 @@ export const summaryService = {
   async calculateDailySummary(
     date: string,
     database: SummaryServiceDatabaseLike = db,
-  ): Promise<DailySummaryRow> {
+  ): Promise<DailySummaryWithCompletion> {
     return calculateDailySummary(date, database);
   },
 
@@ -58,6 +64,7 @@ export const summaryService = {
     database: SummaryServiceDatabaseLike = db,
   ): Promise<DailySummaryRow> {
     const xpEarnedDelta = input.xpEarnedDelta ?? 0;
+    const streakDayOverride = input.streakDayOverride;
     const snapshot = await calculateDailySummary(input.date, database);
     const currentRows = await database
       .select()
@@ -66,12 +73,15 @@ export const summaryService = {
 
     const current = currentRows[0];
     const nextXpEarned = (current?.xpEarned ?? 0) + xpEarnedDelta;
-    const nextStreakDay = current?.streakDay ?? snapshot.streakDay;
+    const nextStreakDay = streakDayOverride ?? current?.streakDay ?? snapshot.streakDay;
 
     await database
       .insert(dailySummary)
       .values({
-        ...snapshot,
+        date: snapshot.date,
+        totalMinutesUsed: snapshot.totalMinutesUsed,
+        totalMinutesGoal: snapshot.totalMinutesGoal,
+        allGoalsMet: snapshot.allGoalsMet,
         xpEarned: nextXpEarned,
         streakDay: nextStreakDay,
       })
@@ -82,6 +92,7 @@ export const summaryService = {
           totalMinutesGoal: snapshot.totalMinutesGoal,
           allGoalsMet: snapshot.allGoalsMet,
           xpEarned: nextXpEarned,
+          streakDay: nextStreakDay,
         },
       });
 

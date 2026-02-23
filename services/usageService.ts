@@ -1,12 +1,14 @@
 import { and, asc, eq, gte, lte } from "drizzle-orm";
 
+import {
+  XP_FIRST_LOG_OF_DAY,
+  XP_GOAL_MET,
+  XP_REGISTER_USAGE,
+} from "@/constants/gamification";
 import { monitoredApps, usageLogs } from "@/db/schema";
 
 export const USAGE_MIN_MINUTES = 0;
 export const USAGE_MAX_MINUTES = 999;
-export const XP_REGISTER_USAGE = 10;
-export const XP_GOAL_MET = 25;
-export const XP_FIRST_LOG_OF_DAY = 5;
 
 interface UpsertUsageInput {
   appId: number;

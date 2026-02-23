@@ -1,3 +1,5 @@
+import { getLevelTitle as getLevelTitleFromConstants, xpNeededForLevel as xpNeededForLevelFromConstants } from '@/constants/gamification';
+
 export interface DashboardLevelProgress {
   currentXp: number;
   currentLevel: number;
@@ -10,25 +12,10 @@ export interface DashboardLevelProgress {
   progressRatio: number;
 }
 
-const LEVEL_TITLES = [
-  "Aprendiz",
-  "Consciente",
-  "Constante",
-  "Disciplinado",
-  "Imparable",
-  "Maestro",
-] as const;
-
 const clamp = (value: number, min = 0, max = 1): number => Math.min(max, Math.max(min, value));
 
-export const xpNeededForLevel = (level: number): number => Math.round(100 * Math.pow(level, 1.5));
-
-export const getLevelTitle = (level: number): string => {
-  if (level <= 0)
-    return LEVEL_TITLES[0];
-
-  return LEVEL_TITLES[Math.min(level - 1, LEVEL_TITLES.length - 1)];
-};
+export const xpNeededForLevel = xpNeededForLevelFromConstants;
+export const getLevelTitle = getLevelTitleFromConstants;
 
 export const getGreetingByHour = (hour: number, userName?: string): string => {
   const normalizedHour = Number.isFinite(hour) ? Math.max(0, Math.min(23, Math.floor(hour))) : 12;

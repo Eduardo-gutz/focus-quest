@@ -10,15 +10,22 @@ interface NotificationPreferences {
   achievementsEnabled: boolean;
 }
 
+export interface ReminderTime {
+  hour: number;
+  minute: number;
+}
+
 interface SettingsStoreState {
   theme: AppTheme;
   notifications: NotificationPreferences;
+  reminderTime: ReminderTime;
   hasCompletedOnboarding: boolean;
 }
 
 interface SettingsStoreActions {
   setTheme: (theme: AppTheme) => void;
   setNotifications: (partialPreferences: Partial<NotificationPreferences>) => void;
+  setReminderTime: (hour: number, minute: number) => void;
   setOnboardingCompleted: (completed: boolean) => void;
   resetSettings: () => void;
 }
@@ -31,6 +38,7 @@ const initialState: SettingsStoreState = {
     dailyReminderEnabled: true,
     achievementsEnabled: true,
   },
+  reminderTime: { hour: 21, minute: 0 },
   hasCompletedOnboarding: false,
 };
 
@@ -51,6 +59,11 @@ export const useSettingsStore = create<SettingsStore>()(
           };
         });
       },
+      setReminderTime: (hour, minute) => {
+        set((state) => {
+          state.reminderTime = { hour, minute };
+        });
+      },
       setOnboardingCompleted: (completed) => {
         set((state) => {
           state.hasCompletedOnboarding = completed;
@@ -62,8 +75,15 @@ export const useSettingsStore = create<SettingsStore>()(
     })),
     {
       name: 'focusquest-settings-store',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => AsyncStorage),
+      migrate: (persistedState, version) => {
+        const state = (persistedState ?? {}) as Partial<SettingsStoreState>;
+        if (version < 2 && !state.reminderTime) {
+          state.reminderTime = { hour: 21, minute: 0 };
+        }
+        return { ...initialState, ...state } as SettingsStoreState;
+      },
     },
   ),
 );

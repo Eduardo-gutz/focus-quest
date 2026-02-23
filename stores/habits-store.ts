@@ -7,6 +7,7 @@ import { immer } from 'zustand/middleware/immer';
 import { db } from '@/db/client';
 import { dailySummary, monitoredApps, usageLogs } from '@/db/schema';
 import { appService } from '@/services/appService';
+import { gamificationService } from '@/services/gamificationService';
 import { summaryService } from '@/services/summaryService';
 import { calculateUsageXpPreview, usageService } from '@/services/usageService';
 import { useGamificationStore } from '@/stores/gamification-store';
@@ -164,20 +165,50 @@ export const useHabitsStore = create<HabitsStore>()(
             date: targetDate,
           }, db as never);
 
-          const xpEarnedDelta = calculateUsageXpPreview({
+          const usageXp = calculateUsageXpPreview({
             minutesUsed: upsertResult.minutesUsed,
             dailyGoalMinutes: upsertResult.dailyGoalMinutes,
             isFirstLogOfDay,
             isUpdate: upsertResult.action === 'updated',
           });
 
-          if (xpEarnedDelta > 0) {
-            await useGamificationStore.getState().grantXp(xpEarnedDelta);
-            await useGamificationStore.getState().evaluateAndUnlockAchievements(targetDate);
-            await useGamificationStore.getState().syncFromDatabase();
+          if (usageXp > 0)
+            await useGamificationStore.getState().grantXp(usageXp);
+
+          const snapshot = await summaryService.calculateDailySummary(targetDate);
+          let bonusXp = 0;
+          let streakDayOverride: number | undefined;
+          let didProcessCompletion = false;
+
+          if (snapshot.isCompleteDay && get().activeApps.length > 0) {
+            const completion = await gamificationService.processDailyCompletion({
+              date: targetDate,
+              allGoalsMet: snapshot.allGoalsMet,
+              activeAppsCount: get().activeApps.length,
+            });
+            bonusXp = completion.bonusXp;
+            didProcessCompletion = bonusXp > 0 || completion.streakDay > 0;
+            if (didProcessCompletion)
+              streakDayOverride = completion.streakDay;
           }
 
-          await get().refreshDailySummary(targetDate, xpEarnedDelta);
+          if (bonusXp > 0)
+            await useGamificationStore.getState().grantXp(bonusXp);
+
+          const totalXpDelta = usageXp + bonusXp;
+          const summary = await summaryService.upsertDailySummary({
+            date: targetDate,
+            xpEarnedDelta: totalXpDelta,
+            streakDayOverride: didProcessCompletion ? streakDayOverride : undefined,
+          });
+
+          set((state) => {
+            state.dailySummarySnapshot = summary;
+          });
+
+          await useGamificationStore.getState().evaluateAndUnlockAchievements(targetDate);
+          await useGamificationStore.getState().syncFromDatabase();
+
           await get().hydrateToday(targetDate);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to register usage';

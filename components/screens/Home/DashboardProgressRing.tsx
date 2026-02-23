@@ -41,20 +41,32 @@ export function DashboardProgressRing({
         animationDuration={650}
         showText={false}
         strokeWidth={0}
-        centerLabelComponent={() => (
-          <View style={{ alignItems: "center" }}>
-            <ThemedText style={homeStyles.ringLabelPrimary}>
-              {completedValue}%
-            </ThemedText>
-            <ThemedText
-              style={[homeStyles.ringLabelSecondary, themedStyles.mutedText]}
+        centerLabelComponent={() => {
+          const innerDiameter = 70 * 2;
+          return (
+            <View
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                width: innerDiameter,
+                height: innerDiameter,
+                borderRadius: innerDiameter / 2,
+                backgroundColor: colors.surface,
+              }}
             >
-              {hasGoals
-                ? `${metGoalsCount} / ${totalGoalsCount} metas`
-                : "Sin apps activas"}
-            </ThemedText>
-          </View>
-        )}
+              <ThemedText style={homeStyles.ringLabelPrimary}>
+                {completedValue}%
+              </ThemedText>
+              <ThemedText
+                style={[homeStyles.ringLabelSecondary, themedStyles.mutedText]}
+              >
+                {hasGoals
+                  ? `${metGoalsCount} / ${totalGoalsCount} metas`
+                  : "Sin apps activas"}
+              </ThemedText>
+            </View>
+          );
+        }}
       />
 
       {hasGoals ? (

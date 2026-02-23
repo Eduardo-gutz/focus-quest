@@ -1,6 +1,7 @@
 import { eq, inArray, sql } from 'drizzle-orm';
 import { migrate as runMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
+import { ACHIEVEMENT_IDS } from '@/constants/gamification';
 import { db } from '@/db/client';
 import {
   achievements,
@@ -26,7 +27,6 @@ interface InsertOnlyDatabase {
   insert: typeof db.insert;
 }
 
-const DEFAULT_ACHIEVEMENTS = ['streak_3', 'streak_7', 'streak_30', 'first_goal', 'early_bird'];
 
 function getIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
@@ -96,10 +96,10 @@ export async function seed(database: DatabaseLike = db): Promise<boolean> {
     });
 
     await tx.insert(achievements).values(
-      DEFAULT_ACHIEVEMENTS.map((id) => ({
+      ACHIEVEMENT_IDS.map((id) => ({
         id,
-        unlocked: id === 'first_goal',
-        unlockedAt: id === 'first_goal' ? new Date().toISOString() : null,
+        unlocked: false,
+        unlockedAt: null,
       })),
     ).onConflictDoNothing();
 
@@ -132,4 +132,27 @@ export async function init(options: InitDatabaseOptions = {}): Promise<void> {
 
   if (shouldSeedOnStartup(options))
     await seed();
+}
+
+/**
+ * Delete all data from the database and reset to initial state.
+ */
+export async function resetDatabase(database: typeof db = db): Promise<void> {
+  await database.delete(usageLogs);
+  await database.delete(dailySummary);
+  await database.delete(achievements);
+  await database.delete(monitoredApps);
+  await ensureUserStatsSingleton(database);
+  await database
+    .update(userStats)
+    .set({
+      currentXp: 0,
+      currentLevel: 1,
+      currentStreak: 0,
+      longestStreak: 0,
+      totalDaysTracked: 0,
+      totalGoalsMet: 0,
+      lastActiveDate: null,
+    })
+    .where(eq(userStats.id, 1));
 }
