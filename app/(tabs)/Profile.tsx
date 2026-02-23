@@ -12,7 +12,9 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { homeStyles } from "@/components/screens/Home/home-styles";
 import {
   createProfileThemedStyles,
+  ProfileAchievementsList,
   profileStyles,
+  ProfileWeeklyChart,
 } from "@/components/screens/Profile";
 import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -36,8 +38,11 @@ export default function ProfileScreen() {
     longestStreak,
     totalDaysTracked,
     totalGoalsMet,
+    controlPercentage,
     unlockedCount,
+    unlockedAchievementIds,
     totalAchievements,
+    achievementsList,
     chartData,
     isHydrating,
     refresh,
@@ -52,8 +57,6 @@ export default function ProfileScreen() {
   const openSettings = useCallback(() => {
     router.push("/settings");
   }, [router]);
-
-  const maxXp = Math.max(...chartData.map((d) => d.xpEarned), 1);
 
   return (
     <View
@@ -94,7 +97,7 @@ export default function ProfileScreen() {
           </View>
           <View style={homeStyles.xpLevelsRow}>
             <ThemedText style={[homeStyles.xpLevelLabel, themedStyles.secondaryText]}>
-              Nivel {currentLevel}
+              {levelProgress.xpInCurrentLevel} / {levelProgress.xpRangeInCurrentLevel} XP
             </ThemedText>
             <ThemedText style={[homeStyles.xpLevelLabel, themedStyles.mutedText]}>
               {levelProgress.xpToNextLevel} XP para subir
@@ -109,7 +112,7 @@ export default function ProfileScreen() {
           <View style={profileStyles.statsGrid}>
             <View style={[profileStyles.statCard, themedStyles.statCard]}>
               <ThemedText style={[profileStyles.statValue, themedStyles.primaryText]}>
-                {currentStreak}
+                {currentStreak} 🔥
               </ThemedText>
               <ThemedText style={[profileStyles.statLabel, themedStyles.mutedText]}>
                 Racha actual
@@ -140,45 +143,39 @@ export default function ProfileScreen() {
               </ThemedText>
             </View>
           </View>
+          <View style={[profileStyles.controlRow, { borderTopColor: colors.border, borderTopWidth: 1 }]}>
+            <ThemedText style={[profileStyles.controlLabel, themedStyles.mutedText]}>
+              Tiempo bajo control
+            </ThemedText>
+            <ThemedText style={[profileStyles.controlValue, themedStyles.primaryText]}>
+              {controlPercentage}%
+            </ThemedText>
+          </View>
         </View>
 
         <View style={[profileStyles.card, themedStyles.card]}>
           <ThemedText style={[profileStyles.sectionTitle, themedStyles.secondaryText]}>
-            XP semanal
+            Tiempo en apps (min)
           </ThemedText>
-          <View style={profileStyles.chartGrid}>
-            {chartData.map((item) => {
-              const heightPercent = Math.max(
-                Math.round((item.xpEarned / maxXp) * 100),
-                item.xpEarned > 0 ? 8 : 0,
-              );
-              const barStyle = item.allGoalsMet
-                ? themedStyles.chartBarSuccess
-                : themedStyles.chartBarPrimary;
-              return (
-                <View key={item.date} style={profileStyles.chartItem}>
-                  <View style={[profileStyles.chartTrack, themedStyles.progressTrack]}>
-                    <View
-                      style={[
-                        profileStyles.chartBar,
-                        barStyle,
-                        { height: `${heightPercent}%` as const },
-                      ]}
-                    />
-                  </View>
-                  <ThemedText style={[profileStyles.chartLabel, themedStyles.mutedText]}>
-                    {item.dayLabel}
-                  </ThemedText>
-                </View>
-              );
-            })}
-          </View>
+          <ProfileWeeklyChart
+            chartData={chartData}
+            colors={colors}
+            themedStyles={themedStyles}
+          />
+        </View>
+
+        <View style={[profileStyles.card, themedStyles.card]}>
+          <ThemedText style={[profileStyles.sectionTitle, themedStyles.secondaryText]}>
+            Logros ({unlockedCount} / {totalAchievements} desbloqueados)
+          </ThemedText>
+          <ProfileAchievementsList
+            achievements={achievementsList}
+            unlockedIds={new Set(unlockedAchievementIds)}
+            themedStyles={themedStyles}
+          />
         </View>
 
         <View style={profileStyles.footerRow}>
-          <ThemedText style={[profileStyles.footerBadges, themedStyles.secondaryText]}>
-            {unlockedCount} / {totalAchievements} logros
-          </ThemedText>
           <Pressable
             onPress={openSettings}
             style={({ pressed }) => [

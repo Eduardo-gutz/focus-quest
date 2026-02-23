@@ -1,26 +1,37 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ACHIEVEMENT_CATALOG, TOTAL_ACHIEVEMENTS } from "@/constants/gamification";
 import { db } from "@/db/client";
 import { dailySummary } from "@/db/schema";
-import { desc, lte } from "drizzle-orm";
-import { TOTAL_ACHIEVEMENTS } from "@/constants/gamification";
 import {
   calculateLevelProgress,
   getLevelTitle,
 } from "@/services/dashboard-metrics";
 import { useGamificationStore } from "@/stores";
+import { count, desc, eq, lte } from "drizzle-orm";
 
-const getIsoDate = (): string => new Date().toISOString().slice(0, 10);
+/** Fecha de hoy en zona horaria local (YYYY-MM-DD) */
+const getIsoDate = (): string => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+};
 
+/** Últimos N días incluyendo hoy, ordenados de más antiguo a más reciente */
 const getLastIsoDates = (endDateIso: string, totalDays: number): string[] => {
   const result: string[] = [];
   const [y, m, d] = endDateIso.split("-").map(Number);
-  const endDate = new Date(Date.UTC(y, (m ?? 1) - 1, d ?? 1));
+  const endDate = new Date(y, (m ?? 1) - 1, d ?? 1);
 
   for (let offset = totalDays - 1; offset >= 0; offset -= 1) {
     const current = new Date(endDate);
-    current.setUTCDate(endDate.getUTCDate() - offset);
-    result.push(current.toISOString().slice(0, 10));
+    current.setDate(endDate.getDate() - offset);
+    const cy = current.getFullYear();
+    const cm = String(current.getMonth() + 1).padStart(2, "0");
+    const cd = String(current.getDate()).padStart(2, "0");
+    result.push(`${cy}-${cm}-${cd}`);
   }
 
   return result;
@@ -35,8 +46,11 @@ const getSpanishWeekdayLabel = (isoDate: string): string =>
 export interface ProfileChartDay {
   date: string;
   dayLabel: string;
-  xpEarned: number;
+  /** Minutos totales usados en apps monitoreadas ese día */
+  minutesUsed: number;
   allGoalsMet: boolean;
+  /** true si existe fila en daily_summary para esa fecha */
+  hasRecord: boolean;
 }
 
 export const useProfile = () => {
@@ -46,16 +60,18 @@ export const useProfile = () => {
   const longestStreak = useGamificationStore((state) => state.longestStreak);
   const totalDaysTracked = useGamificationStore((state) => state.totalDaysTracked);
   const totalGoalsMet = useGamificationStore((state) => state.totalGoalsMet);
-  const unlockedCount = useGamificationStore(
-    (state) => state.unlockedAchievementIds.length,
+  const unlockedAchievementIds = useGamificationStore(
+    (state) => state.unlockedAchievementIds,
   );
+  const unlockedCount = unlockedAchievementIds.length;
   const isHydrating = useGamificationStore((state) => state.isHydrating);
   const hydrate = useGamificationStore((state) => state.hydrate);
 
   const [chartData, setChartData] = useState<ProfileChartDay[]>([]);
+  const [daysWithAllGoalsMet, setDaysWithAllGoalsMet] = useState(0);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
-  const today = useMemo(() => getIsoDate(), []);
+  const today = getIsoDate();
   const sevenDays = useMemo(() => getLastIsoDates(today, 7), [today]);
 
   const levelProgress = useMemo(
@@ -73,28 +89,58 @@ export const useProfile = () => {
     return emojis[Math.min(currentLevel - 1, emojis.length - 1)];
   }, [currentLevel]);
 
+  const achievementsList = useMemo(() => {
+    const unlockedSet = new Set(unlockedAchievementIds);
+    const unlocked: typeof ACHIEVEMENT_CATALOG = [];
+    const locked: typeof ACHIEVEMENT_CATALOG = [];
+    for (const a of ACHIEVEMENT_CATALOG) {
+      if (unlockedSet.has(a.id)) unlocked.push(a);
+      else locked.push(a);
+    }
+    return [...unlocked, ...locked];
+  }, [unlockedAchievementIds]);
+
+  const controlPercentage = useMemo(
+    () =>
+      totalDaysTracked > 0
+        ? Math.min(
+            100,
+            Math.round((daysWithAllGoalsMet / totalDaysTracked) * 100),
+          )
+        : 0,
+    [totalDaysTracked, daysWithAllGoalsMet],
+  );
+
   const refreshChart = useCallback(async () => {
     setIsLoadingChart(true);
     try {
-      const startDate = sevenDays[0] ?? today;
-      const rows = await db
-        .select()
-        .from(dailySummary)
-        .where(lte(dailySummary.date, today))
-        .orderBy(desc(dailySummary.date))
-        .limit(7);
+      const [rows, daysMetResult] = await Promise.all([
+        db
+          .select()
+          .from(dailySummary)
+          .where(lte(dailySummary.date, today))
+          .orderBy(desc(dailySummary.date))
+          .limit(7),
+        db
+          .select({ count: count() })
+          .from(dailySummary)
+          .where(eq(dailySummary.allGoalsMet, true)),
+      ]);
 
       const byDate = new Map(rows.map((r) => [r.date, r]));
       const chart: ProfileChartDay[] = sevenDays.map((date) => {
         const row = byDate.get(date);
+        const hasRecord = !!row;
         return {
           date,
           dayLabel: getSpanishWeekdayLabel(date),
-          xpEarned: row?.xpEarned ?? 0,
+          minutesUsed: row?.totalMinutesUsed ?? 0,
           allGoalsMet: row?.allGoalsMet ?? false,
+          hasRecord,
         };
       });
       setChartData(chart);
+      setDaysWithAllGoalsMet(daysMetResult[0]?.count ?? 0);
     } finally {
       setIsLoadingChart(false);
     }
@@ -121,8 +167,11 @@ export const useProfile = () => {
     longestStreak,
     totalDaysTracked,
     totalGoalsMet,
-    unlockedCount,
-    totalAchievements: TOTAL_ACHIEVEMENTS,
+    controlPercentage,
+      unlockedCount,
+      unlockedAchievementIds,
+      totalAchievements: TOTAL_ACHIEVEMENTS,
+      achievementsList,
     chartData,
     isHydrating: isHydrating || isLoadingChart,
     refresh,

@@ -61,6 +61,23 @@ export const profileStyles = StyleSheet.create({
     letterSpacing: 0.3,
     textTransform: "uppercase",
   },
+  controlRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingTop: 8,
+    paddingHorizontal: 4,
+    marginTop: 4,
+  },
+  controlLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  controlValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    letterSpacing: -0.3,
+  },
   sectionTitle: {
     fontSize: 15,
     fontWeight: "700",
@@ -72,6 +89,11 @@ export const profileStyles = StyleSheet.create({
     justifyContent: "space-between",
     gap: 6,
     minHeight: 100,
+  },
+  chartWrapper: {
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   chartItem: {
     flex: 1,
@@ -99,7 +121,7 @@ export const profileStyles = StyleSheet.create({
   footerRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingTop: 8,
     gap: 12,
   },
@@ -115,10 +137,56 @@ export const profileStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
+    width: "100%",
+    justifyContent: "center",
   },
   settingsButtonText: {
     fontSize: 14,
     fontWeight: "700",
+  },
+  achievementsList: {
+    gap: 8,
+  },
+  achievementItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderRadius: 12,
+  },
+  achievementItemLocked: {
+    opacity: 0.5,
+  },
+  achievementEmoji: {
+    fontSize: 24,
+  },
+  achievementContent: {
+    flex: 1,
+    gap: 2,
+  },
+  achievementName: {
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: -0.1,
+  },
+  achievementDesc: {
+    fontSize: 12,
+    letterSpacing: 0.1,
+  },
+  achievementVerMas: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  achievementVerMasText: {
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
@@ -167,6 +235,20 @@ export const createProfileThemedStyles = (
     },
     chartBarSuccess: {
       backgroundColor: colors.success,
+    },
+    chartBarError: {
+      backgroundColor: colors.error,
+    },
+    chartBarMuted: {
+      backgroundColor: colors.progressTrack,
+    },
+    achievementItem: {
+      backgroundColor: colors.surfaceElevated,
+      borderColor: colors.border,
+    },
+    achievementVerMas: {
+      borderColor: colors.borderStrong,
+      backgroundColor: colors.surfaceElevated,
     },
   });
 
