@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { check, index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { check, index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 export const monitoredApps = sqliteTable('monitored_apps', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -28,6 +28,7 @@ export const usageLogs = sqliteTable(
     sourceCheck: check('usage_logs_source_check', sql`${table.source} in ('manual', 'auto')`),
     usageLogsDateIdx: index('usage_logs_date_idx').on(table.date),
     usageLogsAppIdIdx: index('usage_logs_app_id_idx').on(table.appId),
+    usageLogsAppDateUniqueIdx: uniqueIndex('usage_logs_app_date_unique_idx').on(table.appId, table.date),
   }),
 );
 

@@ -56,6 +56,18 @@ export const appsStyles = StyleSheet.create({
   progressFill: {
     height: "100%",
   },
+  appQuickAction: {
+    alignSelf: "flex-start",
+    minHeight: 30,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: -2,
+  },
+  appQuickActionText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
 
   swipeActionsContainer: {
     alignItems: "stretch",
@@ -92,14 +104,26 @@ export const appsStyles = StyleSheet.create({
   },
 
   fab: {
-    position: "absolute",
-    bottom: 28,
-    right: 20,
     width: 56,
     height: 56,
     borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
+  },
+  fabGroup: {
+    position: "absolute",
+    bottom: 28,
+    right: 20,
+    alignItems: "flex-end",
+    gap: 10,
+  },
+  fabSecondary: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
   },
   fabIcon: {
     fontSize: 28,
@@ -161,6 +185,35 @@ export const appsStyles = StyleSheet.create({
   },
   primaryButtonText: {
     fontWeight: "700",
+  },
+  fullWidthButton: {
+    width: "100%",
+  },
+  appChipsRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingVertical: 4,
+  },
+  appChip: {
+    borderWidth: 1,
+    minHeight: 38,
+    paddingHorizontal: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  minutesInputLarge: {
+    minHeight: 72,
+    fontSize: 34,
+    fontWeight: "700",
+    textAlign: "center",
+    paddingHorizontal: 16,
+  },
+  statusPreviewCard: {
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 2,
   },
 
   sectionHeader: {
@@ -238,6 +291,11 @@ export function createThemedStyles(
       backgroundColor: colors.primary,
       ...shadow.card,
     },
+    fabSecondary: {
+      backgroundColor: colors.surfaceElevated,
+      borderColor: colors.borderStrong,
+      ...shadow.card,
+    },
     textMuted: {
       color: colors.textMuted,
     },
@@ -286,11 +344,47 @@ export function createThemedStyles(
       backgroundColor: colors.success,
       borderRadius: radius.md,
     },
+    appQuickAction: {
+      borderColor: colors.success,
+      borderRadius: radius.pill,
+      backgroundColor: `${colors.success}18`,
+    },
     presetChipTextSelected: {
       color: colors.onPrimary,
     },
     presetChipTextDefault: {
       color: colors.textSecondary,
+    },
+    appChipDefault: {
+      borderColor: colors.borderStrong,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surfaceElevated,
+    },
+    appChipSelected: {
+      borderColor: colors.primary,
+      borderRadius: radius.pill,
+      backgroundColor: `${colors.primary}22`,
+    },
+    statusCardGood: {
+      borderColor: colors.success,
+      borderRadius: radius.md,
+      backgroundColor: `${colors.success}15`,
+    },
+    statusCardBad: {
+      borderColor: colors.error,
+      borderRadius: radius.md,
+      backgroundColor: `${colors.error}15`,
+    },
+    statusCardNeutral: {
+      borderColor: colors.borderStrong,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceElevated,
+    },
+    primaryButtonDangerEnabled: {
+      backgroundColor: colors.error,
+    },
+    primaryButtonSuccessEnabled: {
+      backgroundColor: colors.success,
     },
   });
 }

@@ -8,6 +8,13 @@
       "when": 1771526425239,
       "tag": "0000_silly_clea",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771700000000,
+      "tag": "0001_usage_log_unique_by_day",
+      "breakpoints": true
     }
   ]
 }

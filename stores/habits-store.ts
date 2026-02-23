@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -7,6 +7,8 @@ import { immer } from 'zustand/middleware/immer';
 import { db } from '@/db/client';
 import { dailySummary, monitoredApps, usageLogs } from '@/db/schema';
 import { appService } from '@/services/appService';
+import { calculateUsageXpPreview, usageService } from '@/services/usageService';
+import { useGamificationStore } from '@/stores/gamification-store';
 
 interface CreateMonitoredAppInput {
   name: string;
@@ -50,7 +52,7 @@ interface HabitsStoreActions {
   setAppActive: (appId: number, isActive: boolean) => Promise<void>;
   deleteMonitoredApp: (appId: number) => Promise<void>;
   logUsage: (input: LogUsageInput) => Promise<void>;
-  refreshDailySummary: (date?: string) => Promise<DailySummary | null>;
+  refreshDailySummary: (date?: string, xpEarnedDelta?: number) => Promise<DailySummary | null>;
   clearError: () => void;
 }
 
@@ -179,38 +181,48 @@ export const useHabitsStore = create<HabitsStore>()(
       logUsage: async (input) => {
         const targetDate = input.date ?? get().currentDate ?? getIsoDate();
         try {
-          const app = await db
-            .select()
-            .from(monitoredApps)
-            .where(and(eq(monitoredApps.id, input.appId), eq(monitoredApps.isActive, true)));
-
-          if (!app[0])
-            throw new Error('Monitored app not found');
-
-          const appGoal = app[0].dailyGoalMinutes;
-
-          await db.insert(usageLogs).values({
+          const isFirstLogOfDay = get().todayLogs.filter((log) => log.date === targetDate).length === 0;
+          const upsertResult = await usageService.upsertUsage({
             appId: input.appId,
-            date: targetDate,
             minutesUsed: input.minutesUsed,
-            source: input.source ?? 'manual',
-            goalMet: input.minutesUsed <= appGoal,
+            source: input.source,
+            date: targetDate,
+          }, db);
+
+          const xpEarnedDelta = calculateUsageXpPreview({
+            minutesUsed: upsertResult.minutesUsed,
+            dailyGoalMinutes: upsertResult.dailyGoalMinutes,
+            isFirstLogOfDay,
+            isUpdate: upsertResult.action === 'updated',
           });
 
-          await get().refreshDailySummary(targetDate);
+          if (xpEarnedDelta > 0) {
+            await useGamificationStore.getState().grantXp(xpEarnedDelta);
+            await useGamificationStore.getState().evaluateAndUnlockAchievements(targetDate);
+            await useGamificationStore.getState().syncFromDatabase();
+          }
+
+          await get().refreshDailySummary(targetDate, xpEarnedDelta);
           await get().hydrateToday(targetDate);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to register usage';
           set((state) => {
             state.error = message;
           });
+          throw error instanceof Error ? error : new Error(message);
         }
       },
-      refreshDailySummary: async (date) => {
+      refreshDailySummary: async (date, xpEarnedDelta = 0) => {
         const targetDate = date ?? get().currentDate ?? getIsoDate();
 
         try {
           const snapshot = await calculateDailySnapshot(targetDate);
+          const currentSummaryRows = await db
+            .select()
+            .from(dailySummary)
+            .where(eq(dailySummary.date, targetDate));
+          const currentXpEarned = currentSummaryRows[0]?.xpEarned ?? get().dailySummarySnapshot?.xpEarned ?? 0;
+          const nextXpEarned = currentXpEarned + xpEarnedDelta;
 
           await db
             .insert(dailySummary)
@@ -221,13 +233,14 @@ export const useHabitsStore = create<HabitsStore>()(
                 totalMinutesUsed: snapshot.totalMinutesUsed,
                 totalMinutesGoal: snapshot.totalMinutesGoal,
                 allGoalsMet: snapshot.allGoalsMet,
+                xpEarned: nextXpEarned,
               },
             });
 
           set((state) => {
             state.dailySummarySnapshot = {
               ...snapshot,
-              xpEarned: state.dailySummarySnapshot?.xpEarned ?? 0,
+              xpEarned: nextXpEarned,
               streakDay: state.dailySummarySnapshot?.streakDay ?? 0,
             };
           });

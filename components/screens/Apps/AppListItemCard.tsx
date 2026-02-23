@@ -18,6 +18,7 @@ interface AppListItemCardProps {
   onSwipeableWillOpen?: (itemId: number, swipeable: Swipeable | null) => void;
   onSwipeableClose?: (itemId: number) => void;
   onCardPress?: (itemId: number) => void;
+  onLogUsagePress?: (itemId: number) => void;
 }
 
 export function AppListItemCard({
@@ -28,6 +29,7 @@ export function AppListItemCard({
   onSwipeableWillOpen,
   onSwipeableClose,
   onCardPress,
+  onLogUsagePress,
 }: AppListItemCardProps) {
   const swipeableRef = useRef<Swipeable | null>(null);
   const goalMinutes = item.dailyGoalMinutes;
@@ -100,6 +102,25 @@ export function AppListItemCard({
               ]}
             />
           </View>
+
+          {item.isActive ? (
+            <Pressable
+              onPress={() => {
+                onLogUsagePress?.(item.id);
+              }}
+              style={({ pressed }) => [
+                appsStyles.appQuickAction,
+                themedStyles.appQuickAction,
+                pressed ? appsStyles.opacityPressed90 : null,
+              ]}
+            >
+              <ThemedText
+                style={[appsStyles.appQuickActionText, themedStyles.textSuccess]}
+              >
+                Registrar tiempo
+              </ThemedText>
+            </Pressable>
+          ) : null}
         </ThemedView>
       </Pressable>
     </Swipeable>

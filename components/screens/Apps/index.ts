@@ -1,5 +1,6 @@
 export { AddSection } from "@/components/screens/Apps/AddSection";
 export { AppListItemCard } from "@/components/screens/Apps/AppListItemCard";
+export { LogUsageSection } from "@/components/screens/Apps/LogUsageSection";
 export {
     appsStyles,
     createThemedStyles

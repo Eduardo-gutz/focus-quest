@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX `usage_logs_app_date_unique_idx` ON `usage_logs` (`app_id`,`date`);

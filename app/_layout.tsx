@@ -123,6 +123,14 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="log-usage"
+            options={{
+              presentation: "transparentModal",
+              animation: "slide_from_bottom",
+              headerShown: false,
+            }}
+          />
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>

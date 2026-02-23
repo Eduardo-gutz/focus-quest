@@ -1,6 +1,6 @@
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useLayoutEffect, useMemo } from "react";
-import { Pressable, View } from "react-native";
+import { Alert, Pressable, View } from "react-native";
 
 import {
   ListSection,
@@ -22,6 +22,7 @@ export default function AppsScreen() {
   );
   const {
     apps,
+    activeApps,
     todayLogs,
     isHydrating,
     isMutating,
@@ -43,6 +44,22 @@ export default function AppsScreen() {
 
   const openAddModal = useCallback(() => {
     router.push("/modal");
+  }, [router]);
+
+  const openLogUsageModal = useCallback(() => {
+    if (activeApps.length === 0) {
+      Alert.alert("Sin apps activas", "Activa o agrega una app para registrar uso.");
+      return;
+    }
+
+    router.push("/log-usage");
+  }, [activeApps.length, router]);
+
+  const openLogUsageForApp = useCallback((appId: number) => {
+    router.push({
+      pathname: "/log-usage",
+      params: { appId: String(appId) },
+    });
   }, [router]);
 
   useLayoutEffect(() => {
@@ -68,6 +85,7 @@ export default function AppsScreen() {
         themedStyles={themedStyles}
         onRefresh={refresh}
         onAddFirstApp={openAddModal}
+        onLogUsageApp={openLogUsageForApp}
         listHeaderComponent={
           error ? (
             <ThemedText style={[appsStyles.errorText, themedStyles.textError]}>
@@ -80,18 +98,31 @@ export default function AppsScreen() {
         onDeleteApp={deleteApp}
       />
 
-      <Pressable
-        onPress={openAddModal}
-        style={({ pressed }) => [
-          appsStyles.fab,
-          themedStyles.fab,
-          pressed && appsStyles.opacityPressed85,
-        ]}
-      >
-        <ThemedText style={[appsStyles.fabIcon, themedStyles.textOnPrimary]}>
-          +
-        </ThemedText>
-      </Pressable>
+      <View style={appsStyles.fabGroup}>
+        <Pressable
+          onPress={openLogUsageModal}
+          style={({ pressed }) => [
+            appsStyles.fabSecondary,
+            themedStyles.fabSecondary,
+            pressed && appsStyles.opacityPressed85,
+          ]}
+        >
+          <ThemedText type="defaultSemiBold">⏱️</ThemedText>
+        </Pressable>
+
+        <Pressable
+          onPress={openAddModal}
+          style={({ pressed }) => [
+            appsStyles.fab,
+            themedStyles.fab,
+            pressed && appsStyles.opacityPressed85,
+          ]}
+        >
+          <ThemedText style={[appsStyles.fabIcon, themedStyles.textOnPrimary]}>
+            +
+          </ThemedText>
+        </Pressable>
+      </View>
     </View>
   );
 }

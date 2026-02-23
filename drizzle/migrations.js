@@ -2,11 +2,13 @@
 
 import journal from './meta/_journal.json';
 import m0000 from './0000_silly_clea.sql';
+import m0001 from './0001_usage_log_unique_by_day.sql';
 
   export default {
     journal,
     migrations: {
-      m0000
+      m0000,
+      m0001,
     }
   }
   

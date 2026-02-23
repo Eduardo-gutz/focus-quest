@@ -33,6 +33,7 @@ interface ListSectionProps {
   themedStyles: ThemedStyles;
   onRefresh: () => Promise<void>;
   onAddFirstApp: () => void;
+  onLogUsageApp?: (appId: number) => void;
   listHeaderComponent?: ReactElement | null;
   onUpdateApp: (appId: number, payload: UpdateAppPayload) => Promise<void>;
   onToggleApp: (appId: number, value: boolean) => Promise<void>;
@@ -47,6 +48,7 @@ export const ListSection = ({
   themedStyles,
   onRefresh,
   onAddFirstApp,
+  onLogUsageApp,
   listHeaderComponent,
   onUpdateApp,
   onToggleApp,
@@ -252,6 +254,7 @@ export const ListSection = ({
         onSwipeableWillOpen={handleSwipeableWillOpen}
         onSwipeableClose={handleSwipeableClose}
         onCardPress={handleCardPress}
+        onLogUsagePress={section.key === "active" ? onLogUsageApp : undefined}
       />
     </View>
   );
