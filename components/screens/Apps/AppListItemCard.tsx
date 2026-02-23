@@ -33,12 +33,12 @@ export function AppListItemCard({
 }: AppListItemCardProps) {
   const swipeableRef = useRef<Swipeable | null>(null);
   const goalMinutes = item.dailyGoalMinutes;
-  const progressRatio =
-    goalMinutes > 0 ? Math.min(usedMinutes / goalMinutes, 1) : 0;
+  const progressRatio = goalMinutes > 0 ? Math.min(usedMinutes / goalMinutes, 1) : 0;
   const progressPercentage = progressRatio * 100;
   const progressWidth = `${Math.round(progressPercentage)}%` as const;
   const isGoalMet = usedMinutes <= goalMinutes;
   const statusMark = isGoalMet ? "✓" : "✗";
+
   const progressFillStyle =
     progressPercentage < 60
       ? themedStyles.progressFillGreen
@@ -63,19 +63,18 @@ export function AppListItemCard({
         onPress={() => {
           onCardPress?.(item.id);
         }}
+        style={({ pressed }) => [pressed ? appsStyles.opacityPressed90 : null]}
       >
         <ThemedView style={[appsStyles.appCard, themedStyles.appCard]}>
           <View style={appsStyles.appTopRow}>
-            <View
-              style={[appsStyles.appEmojiBubble, themedStyles.appEmojiBubble]}
-            >
+            <View style={[appsStyles.appEmojiBubble, themedStyles.appEmojiBubble]}>
               <ThemedText style={appsStyles.emojiText}>
                 {item.iconEmoji || "📱"}
               </ThemedText>
             </View>
 
             <View style={appsStyles.appInfo}>
-              <ThemedText type="defaultSemiBold">{item.name}</ThemedText>
+              <ThemedText style={appsStyles.appName}>{item.name}</ThemedText>
               <ThemedText
                 style={[appsStyles.usageText, themedStyles.textSecondary]}
               >
@@ -115,9 +114,9 @@ export function AppListItemCard({
               ]}
             >
               <ThemedText
-                style={[appsStyles.appQuickActionText, themedStyles.textSuccess]}
+                style={[appsStyles.appQuickActionText, themedStyles.textPrimary]}
               >
-                Registrar tiempo
+                + Registrar tiempo
               </ThemedText>
             </Pressable>
           ) : null}

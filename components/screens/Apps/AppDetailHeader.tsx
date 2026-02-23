@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
 import {
+  appsStyles,
+  type ThemedStyles,
+} from "@/components/screens/Apps/apps-styles";
+import { ThemedText } from "@/components/themed-text";
+import {
   APP_GOAL_MAX_MINUTES,
   APP_GOAL_MIN_MINUTES,
 } from "@/services/appService";
-import { appsStyles, type ThemedStyles } from "@/components/screens/Apps/apps-styles";
-import { ThemedText } from "@/components/themed-text";
 
 interface AppDetailHeaderProps {
   name: string;
@@ -46,8 +49,13 @@ export function AppDetailHeader({
       return;
     }
 
-    if (parsedGoal < APP_GOAL_MIN_MINUTES || parsedGoal > APP_GOAL_MAX_MINUTES) {
-      setError(`La meta debe estar entre ${APP_GOAL_MIN_MINUTES} y ${APP_GOAL_MAX_MINUTES} min.`);
+    if (
+      parsedGoal < APP_GOAL_MIN_MINUTES ||
+      parsedGoal > APP_GOAL_MAX_MINUTES
+    ) {
+      setError(
+        `La meta debe estar entre ${APP_GOAL_MIN_MINUTES} y ${APP_GOAL_MAX_MINUTES} min.`,
+      );
       return;
     }
 
@@ -57,7 +65,10 @@ export function AppDetailHeader({
       await onSaveDailyGoal(parsedGoal);
       setIsEditingGoal(false);
     } catch (saveError) {
-      const message = saveError instanceof Error ? saveError.message : "No se pudo guardar la meta";
+      const message =
+        saveError instanceof Error
+          ? saveError.message
+          : "No se pudo guardar la meta";
       setError(message);
     } finally {
       setIsSaving(false);
@@ -67,13 +78,17 @@ export function AppDetailHeader({
   return (
     <View style={[appsStyles.detailCard, themedStyles.appCard]}>
       <View style={appsStyles.detailHeaderTopRow}>
-        <View style={[appsStyles.detailEmojiWrap, themedStyles.appEmojiBubble]}>
-          <ThemedText style={appsStyles.detailEmojiText}>{iconEmoji || "📱"}</ThemedText>
+        <View style={[appsStyles.detailEmojiWrap, themedStyles.detailEmojiWrap]}>
+          <ThemedText style={appsStyles.detailEmojiText}>
+            {iconEmoji || "📱"}
+          </ThemedText>
         </View>
         <View style={appsStyles.detailHeaderInfo}>
           <ThemedText type="subtitle">{name}</ThemedText>
-          <ThemedText style={[appsStyles.detailMetaText, themedStyles.textSecondary]}>
-            Meta diaria: {dailyGoalMinutes} min
+          <ThemedText
+            style={[appsStyles.detailMetaText, themedStyles.textSecondary]}
+          >
+            Meta diaria · {dailyGoalMinutes} min
           </ThemedText>
         </View>
       </View>
@@ -87,7 +102,9 @@ export function AppDetailHeader({
             pressed ? appsStyles.opacityPressed90 : null,
           ]}
         >
-          <ThemedText style={[appsStyles.appQuickActionText, themedStyles.textSuccess]}>
+          <ThemedText
+            style={[appsStyles.appQuickActionText, themedStyles.textPrimary]}
+          >
             Editar meta
           </ThemedText>
         </Pressable>
@@ -99,7 +116,11 @@ export function AppDetailHeader({
               onChangeText={setDraftGoal}
               keyboardType="number-pad"
               placeholder="Meta"
-              style={[appsStyles.input, appsStyles.detailGoalInput, themedStyles.input]}
+              style={[
+                appsStyles.input,
+                appsStyles.detailGoalInput,
+                themedStyles.input,
+              ]}
             />
             <ThemedText style={themedStyles.textSecondary}>min</ThemedText>
           </View>
@@ -113,7 +134,12 @@ export function AppDetailHeader({
               ]}
               disabled={isSaving}
             >
-              <ThemedText style={[appsStyles.appQuickActionText, themedStyles.textSecondary]}>
+              <ThemedText
+                style={[
+                  appsStyles.appQuickActionText,
+                  themedStyles.textSecondary,
+                ]}
+              >
                 Cancelar
               </ThemedText>
             </Pressable>
@@ -129,13 +155,17 @@ export function AppDetailHeader({
               ]}
               disabled={isSaving}
             >
-              <ThemedText style={[appsStyles.appQuickActionText, themedStyles.textSuccess]}>
+              <ThemedText
+                style={[appsStyles.appQuickActionText, themedStyles.textPrimary]}
+              >
                 {isSaving ? "Guardando..." : "Guardar"}
               </ThemedText>
             </Pressable>
           </View>
           {error ? (
-            <ThemedText style={[appsStyles.errorText, themedStyles.textError]}>{error}</ThemedText>
+            <ThemedText style={[appsStyles.errorText, themedStyles.textError]}>
+              {error}
+            </ThemedText>
           ) : null}
         </View>
       )}

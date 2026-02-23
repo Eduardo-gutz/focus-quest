@@ -7,12 +7,13 @@ export const appsStyles = StyleSheet.create({
     flex: 1,
   },
   listContentContainer: {
-    gap: 12,
+    gap: 10,
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 96,
   },
 
+  // App card list item
   appCard: {
     gap: 10,
     borderWidth: 1,
@@ -25,42 +26,47 @@ export const appsStyles = StyleSheet.create({
   },
   appEmojiBubble: {
     alignItems: "center",
-    borderWidth: 1,
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
   },
   emojiText: {
-    fontSize: 20,
+    fontSize: 22,
   },
   appInfo: {
     flex: 1,
-    gap: 2,
+    gap: 3,
+  },
+  appName: {
+    fontSize: 14,
+    fontWeight: "600",
+    letterSpacing: -0.1,
   },
   usageText: {
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 12,
+    fontWeight: "500",
   },
   statusMark: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
-    minWidth: 20,
+    minWidth: 22,
     textAlign: "center",
   },
   progressTrack: {
     borderRadius: 999,
-    height: 8,
+    height: 6,
     overflow: "hidden",
     width: "100%",
   },
   progressFill: {
     height: "100%",
+    borderRadius: 999,
   },
   appQuickAction: {
     alignSelf: "flex-start",
-    minHeight: 30,
+    minHeight: 28,
     borderWidth: 1,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
     marginTop: -2,
   },
@@ -69,24 +75,26 @@ export const appsStyles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  // Swipe actions
   swipeActionsContainer: {
     alignItems: "stretch",
     flexDirection: "row",
-    gap: 8,
+    gap: 6,
     justifyContent: "flex-end",
-    marginBottom: 12,
+    marginBottom: 10,
   },
   swipeActionButton: {
     alignItems: "center",
     justifyContent: "center",
-    minWidth: 68,
-    paddingHorizontal: 12,
+    minWidth: 64,
+    paddingHorizontal: 10,
   },
 
+  // Empty state
   emptyStateContainer: {
     alignItems: "center",
     gap: 12,
-    paddingVertical: 48,
+    paddingVertical: 56,
     paddingHorizontal: 24,
   },
   emptyEmoji: {
@@ -96,6 +104,7 @@ export const appsStyles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     textAlign: "center",
+    letterSpacing: -0.3,
   },
   emptyDescription: {
     fontSize: 14,
@@ -103,6 +112,7 @@ export const appsStyles = StyleSheet.create({
     lineHeight: 20,
   },
 
+  // FABs
   fab: {
     width: 56,
     height: 56,
@@ -118,19 +128,20 @@ export const appsStyles = StyleSheet.create({
     gap: 10,
   },
   fabSecondary: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
   },
   fabIcon: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: "700",
-    lineHeight: 30,
+    lineHeight: 28,
   },
 
+  // Forms
   formContainer: {
     gap: 14,
   },
@@ -178,13 +189,15 @@ export const appsStyles = StyleSheet.create({
   },
   primaryButton: {
     alignItems: "center",
-    minHeight: 44,
+    minHeight: 46,
     justifyContent: "center",
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   primaryButtonText: {
     fontWeight: "700",
+    fontSize: 15,
+    letterSpacing: 0.1,
   },
   fullWidthButton: {
     width: "100%",
@@ -204,10 +217,11 @@ export const appsStyles = StyleSheet.create({
   },
   minutesInputLarge: {
     minHeight: 72,
-    fontSize: 34,
+    fontSize: 36,
     fontWeight: "700",
     textAlign: "center",
     paddingHorizontal: 16,
+    letterSpacing: -1,
   },
   statusPreviewCard: {
     borderWidth: 1,
@@ -216,29 +230,30 @@ export const appsStyles = StyleSheet.create({
     gap: 2,
   },
 
+  // Section headers
   sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    paddingTop: 12,
-    paddingBottom: 4,
+    paddingTop: 14,
+    paddingBottom: 6,
   },
   sectionHeaderTitle: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: "700",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   sectionHeaderBadge: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
   },
   sectionSeparator: {
     height: 1,
-    marginVertical: 8,
+    marginVertical: 4,
   },
   inactiveCard: {
-    opacity: 0.6,
+    opacity: 0.55,
   },
 
   errorText: {
@@ -251,38 +266,39 @@ export const appsStyles = StyleSheet.create({
     opacity: 0.9,
   },
 
+  // Detail screen
   detailScrollContent: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 28,
+    paddingTop: 14,
+    paddingBottom: 32,
     gap: 12,
   },
   detailCard: {
     borderWidth: 1,
-    padding: 14,
-    gap: 10,
+    padding: 16,
+    gap: 12,
   },
   detailHeaderTopRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 14,
   },
   detailEmojiWrap: {
-    width: 64,
-    height: 64,
+    width: 68,
+    height: 68,
     alignItems: "center",
     justifyContent: "center",
   },
   detailEmojiText: {
-    fontSize: 32,
+    fontSize: 34,
   },
   detailHeaderInfo: {
     flex: 1,
-    gap: 2,
+    gap: 3,
   },
   detailMetaText: {
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "500",
   },
   detailGoalEditor: {
     gap: 8,
@@ -305,21 +321,24 @@ export const appsStyles = StyleSheet.create({
   detailTodayText: {
     fontSize: 15,
     fontWeight: "700",
+    letterSpacing: -0.1,
   },
   detailProgressTrackLarge: {
     borderRadius: 999,
-    height: 14,
+    height: 12,
     overflow: "hidden",
     width: "100%",
   },
   detailProgressFillLarge: {
     height: "100%",
+    borderRadius: 999,
   },
+  // History chart
   detailHistoryGrid: {
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    gap: 8,
+    gap: 6,
     minHeight: 140,
   },
   detailHistoryItem: {
@@ -329,27 +348,29 @@ export const appsStyles = StyleSheet.create({
   },
   detailHistoryTrack: {
     width: "100%",
-    maxWidth: 22,
-    height: 94,
-    borderRadius: 999,
+    maxWidth: 26,
+    height: 100,
+    borderRadius: 8,
     justifyContent: "flex-end",
     overflow: "hidden",
   },
   detailHistoryBar: {
     width: "100%",
-    borderRadius: 999,
+    borderRadius: 8,
   },
   detailHistoryStatus: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
-    lineHeight: 16,
-    minHeight: 16,
+    lineHeight: 15,
+    minHeight: 15,
   },
   detailHistoryLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: "600",
     textTransform: "capitalize",
+    letterSpacing: 0.2,
   },
+  // Stats grid
   detailStatsGrid: {
     flexDirection: "row",
     gap: 8,
@@ -357,19 +378,22 @@ export const appsStyles = StyleSheet.create({
   detailStatCard: {
     flex: 1,
     borderWidth: 1,
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 10,
     alignItems: "center",
-    gap: 2,
+    gap: 3,
   },
   detailStatValue: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     textAlign: "center",
+    letterSpacing: -0.5,
   },
   detailStatLabel: {
-    fontSize: 12,
+    fontSize: 11,
     textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
   },
 });
 
@@ -390,14 +414,14 @@ export function createThemedStyles(
       ...shadow.card,
     },
     appEmojiBubble: {
-      backgroundColor: colors.surfaceElevated,
-      borderColor: colors.border,
+      backgroundColor: `${colors.primary}18`,
       borderRadius: radius.md,
     },
     input: {
       borderColor: colors.borderStrong,
       borderRadius: radius.md,
       color: colors.text,
+      backgroundColor: colors.surfaceElevated,
     },
     primaryButton: {
       borderRadius: radius.md,
@@ -435,6 +459,9 @@ export function createThemedStyles(
     textSuccess: {
       color: colors.success,
     },
+    textAccent: {
+      color: colors.accent,
+    },
     progressTrack: {
       backgroundColor: colors.progressTrack,
     },
@@ -445,13 +472,16 @@ export function createThemedStyles(
       backgroundColor: colors.warning,
     },
     progressFillOrange: {
-      backgroundColor: "#F59E0B",
+      backgroundColor: colors.primary,
     },
     progressFillRed: {
       backgroundColor: colors.error,
     },
     sectionSeparator: {
       backgroundColor: colors.border,
+    },
+    sectionHeaderTitle: {
+      color: colors.textMuted,
     },
     swipeActionEdit: {
       backgroundColor: colors.primary,
@@ -466,9 +496,9 @@ export function createThemedStyles(
       borderRadius: radius.md,
     },
     appQuickAction: {
-      borderColor: colors.success,
+      borderColor: `${colors.primary}60`,
       borderRadius: radius.pill,
-      backgroundColor: `${colors.success}18`,
+      backgroundColor: `${colors.primary}18`,
     },
     presetChipTextSelected: {
       color: colors.onPrimary,
@@ -487,14 +517,14 @@ export function createThemedStyles(
       backgroundColor: `${colors.primary}22`,
     },
     statusCardGood: {
-      borderColor: colors.success,
+      borderColor: `${colors.success}50`,
       borderRadius: radius.md,
-      backgroundColor: `${colors.success}15`,
+      backgroundColor: `${colors.success}12`,
     },
     statusCardBad: {
-      borderColor: colors.error,
+      borderColor: `${colors.error}50`,
       borderRadius: radius.md,
-      backgroundColor: `${colors.error}15`,
+      backgroundColor: `${colors.error}12`,
     },
     statusCardNeutral: {
       borderColor: colors.borderStrong,
@@ -506,6 +536,15 @@ export function createThemedStyles(
     },
     primaryButtonSuccessEnabled: {
       backgroundColor: colors.success,
+    },
+    detailStatCard: {
+      backgroundColor: colors.surfaceElevated,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+    },
+    detailEmojiWrap: {
+      backgroundColor: `${colors.primary}18`,
+      borderRadius: radius.lg,
     },
   });
 }

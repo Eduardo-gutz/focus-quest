@@ -1,57 +1,57 @@
 import { Platform } from 'react-native';
 
-const PRIMARY = '#4361EE';
-const ACCENT = '#4CC9F0';
-const SUCCESS = '#06D6A0';
-const WARNING = '#FFD166';
-const ERROR = '#EF476F';
+const PRIMARY = '#F97316';   // Naranja cálido — energético, motivador
+const ACCENT = '#E879F9';    // Magenta — gamificación, logros especiales
+const SUCCESS = '#22C55E';
+const WARNING = '#FBBF24';
+const ERROR = '#F87171';
 
 export const Colors = {
   light: {
-    text: '#111827',
-    textSecondary: '#334155',
-    textMuted: '#64748B',
-    background: '#F4F6FA',
+    text: '#111111',
+    textSecondary: '#3C3C43',
+    textMuted: '#8E8E93',
+    background: '#F2F2F7',
     surface: '#FFFFFF',
-    surfaceElevated: '#FFFFFF',
+    surfaceElevated: '#F8F8FA',
     tint: PRIMARY,
-    icon: '#6B7280',
-    tabIconDefault: '#94A3B8',
+    icon: '#8E8E93',
+    tabIconDefault: '#8E8E93',
     tabIconSelected: PRIMARY,
-    border: '#E5E7EB',
-    borderStrong: '#CBD5E1',
+    border: '#E5E5EA',
+    borderStrong: '#C7C7CC',
     primary: PRIMARY,
     accent: ACCENT,
     success: SUCCESS,
     warning: WARNING,
     error: ERROR,
     onPrimary: '#FFFFFF',
-    warningForeground: '#8A5D00',
+    warningForeground: '#7A4500',
     link: PRIMARY,
-    progressTrack: '#E2E8F0',
+    progressTrack: '#E5E5EA',
   },
   dark: {
-    text: '#F8FAFC',
-    textSecondary: '#CBD5E1',
-    textMuted: '#94A3B8',
-    background: '#0F172A',
-    surface: '#111C33',
-    surfaceElevated: '#1A2742',
+    text: '#F5F5F7',
+    textSecondary: '#AEAEB2',
+    textMuted: '#636366',
+    background: '#131315',
+    surface: '#1E1E21',
+    surfaceElevated: '#28282C',
     tint: PRIMARY,
-    icon: '#AAB7CF',
-    tabIconDefault: '#8193B2',
+    icon: '#8E8E93',
+    tabIconDefault: '#48484A',
     tabIconSelected: PRIMARY,
-    border: '#22314D',
-    borderStrong: '#334155',
+    border: '#2C2C30',
+    borderStrong: '#3A3A3E',
     primary: PRIMARY,
     accent: ACCENT,
     success: SUCCESS,
     warning: WARNING,
     error: ERROR,
     onPrimary: '#FFFFFF',
-    warningForeground: '#FFE2A0',
-    link: ACCENT,
-    progressTrack: '#2C3A57',
+    warningForeground: '#FFD580',
+    link: PRIMARY,
+    progressTrack: '#252528',
   },
 };
 
@@ -148,10 +148,10 @@ export const Radius = {
 export const Shadows = {
   light: {
     card: {
-      shadowColor: '#101828',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
+      shadowColor: '#000000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
       elevation: 2,
     },
   },
@@ -159,9 +159,9 @@ export const Shadows = {
     card: {
       shadowColor: '#000000',
       shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.28,
-      shadowRadius: 8,
-      elevation: 1,
+      shadowOpacity: 0.4,
+      shadowRadius: 6,
+      elevation: 3,
     },
   },
 };
