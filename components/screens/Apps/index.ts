@@ -1,4 +1,8 @@
 export { AddSection } from "@/components/screens/Apps/AddSection";
+export { AppDetailHeader } from "@/components/screens/Apps/AppDetailHeader";
+export { AppDetailHistorySection } from "@/components/screens/Apps/AppDetailHistorySection";
+export { AppDetailStatsSection } from "@/components/screens/Apps/AppDetailStatsSection";
+export { AppDetailTodaySection } from "@/components/screens/Apps/AppDetailTodaySection";
 export { AppListItemCard } from "@/components/screens/Apps/AppListItemCard";
 export { LogUsageSection } from "@/components/screens/Apps/LogUsageSection";
 export {

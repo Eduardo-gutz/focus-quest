@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, gte, lte } from "drizzle-orm";
 
 import { monitoredApps, usageLogs } from "@/db/schema";
 
@@ -22,10 +22,18 @@ interface UpsertUsageResult {
   minutesUsed: number;
 }
 
+interface GetUsageHistoryRangeInput {
+  appId: number;
+  startDate: string;
+  endDate: string;
+}
+
 interface UsageServiceDatabaseLike {
   select: (...args: unknown[]) => {
     from: (...innerArgs: unknown[]) => {
-      where: (...whereArgs: unknown[]) => Promise<unknown[]>;
+      where: (...whereArgs: unknown[]) => {
+        orderBy: (...orderByArgs: unknown[]) => Promise<unknown[]>;
+      } | Promise<unknown[]>;
     };
   };
   insert: (...args: unknown[]) => {
@@ -46,6 +54,16 @@ interface AppLookupRow {
 
 interface ExistingUsageRow {
   id: number;
+}
+
+interface UsageHistoryRow {
+  id: number;
+  appId: number;
+  date: string;
+  minutesUsed: number;
+  source: "manual" | "auto";
+  goalMet: boolean;
+  createdAt: string;
 }
 
 interface CalculateUsageXpPreviewInput {
@@ -141,6 +159,36 @@ export const usageService = {
       goalMet,
       minutesUsed: input.minutesUsed,
     };
+  },
+
+  async getUsageHistoryRange(
+    input: GetUsageHistoryRangeInput,
+    database: UsageServiceDatabaseLike,
+  ): Promise<UsageHistoryRow[]> {
+    const queryResult = database
+      .select({
+        id: usageLogs.id,
+        appId: usageLogs.appId,
+        date: usageLogs.date,
+        minutesUsed: usageLogs.minutesUsed,
+        source: usageLogs.source,
+        goalMet: usageLogs.goalMet,
+        createdAt: usageLogs.createdAt,
+      })
+      .from(usageLogs)
+      .where(
+        and(
+          eq(usageLogs.appId, input.appId),
+          gte(usageLogs.date, input.startDate),
+          lte(usageLogs.date, input.endDate),
+        ),
+      );
+
+    const rows = "orderBy" in queryResult
+      ? await queryResult.orderBy(asc(usageLogs.date))
+      : await queryResult;
+
+    return rows as UsageHistoryRow[];
   },
 };
 

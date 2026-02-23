@@ -250,6 +250,127 @@ export const appsStyles = StyleSheet.create({
   opacityPressed90: {
     opacity: 0.9,
   },
+
+  detailScrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 28,
+    gap: 12,
+  },
+  detailCard: {
+    borderWidth: 1,
+    padding: 14,
+    gap: 10,
+  },
+  detailHeaderTopRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  detailEmojiWrap: {
+    width: 64,
+    height: 64,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  detailEmojiText: {
+    fontSize: 32,
+  },
+  detailHeaderInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  detailMetaText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  detailGoalEditor: {
+    gap: 8,
+  },
+  detailGoalInputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  detailGoalInput: {
+    width: 90,
+    textAlign: "center",
+    fontWeight: "700",
+  },
+  detailGoalEditorActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  detailTodayText: {
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  detailProgressTrackLarge: {
+    borderRadius: 999,
+    height: 14,
+    overflow: "hidden",
+    width: "100%",
+  },
+  detailProgressFillLarge: {
+    height: "100%",
+  },
+  detailHistoryGrid: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 8,
+    minHeight: 140,
+  },
+  detailHistoryItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  detailHistoryTrack: {
+    width: "100%",
+    maxWidth: 22,
+    height: 94,
+    borderRadius: 999,
+    justifyContent: "flex-end",
+    overflow: "hidden",
+  },
+  detailHistoryBar: {
+    width: "100%",
+    borderRadius: 999,
+  },
+  detailHistoryStatus: {
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 16,
+    minHeight: 16,
+  },
+  detailHistoryLabel: {
+    fontSize: 11,
+    fontWeight: "600",
+    textTransform: "capitalize",
+  },
+  detailStatsGrid: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  detailStatCard: {
+    flex: 1,
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    alignItems: "center",
+    gap: 2,
+  },
+  detailStatValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  detailStatLabel: {
+    fontSize: 12,
+    textAlign: "center",
+  },
 });
 
 export function createThemedStyles(

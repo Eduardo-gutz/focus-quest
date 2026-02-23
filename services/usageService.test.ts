@@ -78,5 +78,49 @@ describe("usageService", () => {
     expect(database.update).toHaveBeenCalledTimes(1);
     expect(updateWhere).toHaveBeenCalledTimes(1);
   });
+
+  it("obtiene historial por rango de fechas ordenado", async () => {
+    const expectedRows = [
+      {
+        id: 11,
+        appId: 1,
+        date: "2026-02-17",
+        minutesUsed: 20,
+        source: "manual",
+        goalMet: true,
+        createdAt: "2026-02-17T11:00:00Z",
+      },
+      {
+        id: 12,
+        appId: 1,
+        date: "2026-02-18",
+        minutesUsed: 50,
+        source: "manual",
+        goalMet: false,
+        createdAt: "2026-02-18T11:00:00Z",
+      },
+    ];
+    const orderBy = jest.fn().mockResolvedValue(expectedRows);
+    const where = jest.fn(() => ({ orderBy }));
+    const from = jest.fn(() => ({ where }));
+    const database = {
+      select: jest.fn(() => ({ from })),
+      insert: jest.fn(),
+      update: jest.fn(),
+    };
+
+    const result = await usageService.getUsageHistoryRange(
+      {
+        appId: 1,
+        startDate: "2026-02-17",
+        endDate: "2026-02-23",
+      },
+      database as never,
+    );
+
+    expect(result).toEqual(expectedRows);
+    expect(database.select).toHaveBeenCalledTimes(1);
+    expect(orderBy).toHaveBeenCalledTimes(1);
+  });
 });
 

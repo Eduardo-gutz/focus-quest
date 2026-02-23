@@ -116,6 +116,13 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
+            name="app-detail/[id]"
+            options={{
+              presentation: "card",
+              animation: "default",
+            }}
+          />
+          <Stack.Screen
             name="modal"
             options={{
               presentation: "transparentModal",

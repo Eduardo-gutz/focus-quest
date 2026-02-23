@@ -105,6 +105,10 @@ export const ListSection = ({
 
   const handleCardPress = (itemId: number) => {
     if (!openSwipeableRef.current) {
+      router.push({
+        pathname: "/app-detail/[id]",
+        params: { id: String(itemId) },
+      });
       return;
     }
 

@@ -7,6 +7,7 @@ import { immer } from 'zustand/middleware/immer';
 import { db } from '@/db/client';
 import { dailySummary, monitoredApps, usageLogs } from '@/db/schema';
 import { appService } from '@/services/appService';
+import { summaryService } from '@/services/summaryService';
 import { calculateUsageXpPreview, usageService } from '@/services/usageService';
 import { useGamificationStore } from '@/stores/gamification-store';
 
@@ -68,32 +69,6 @@ const initialState: HabitsStoreState = {
   dailySummarySnapshot: null,
   isHydrating: false,
   error: null,
-};
-
-const calculateDailySnapshot = async (date: string): Promise<DailySummary> => {
-  const [apps, logs] = await Promise.all([
-    db.select().from(monitoredApps).where(eq(monitoredApps.isActive, true)),
-    db.select().from(usageLogs).where(eq(usageLogs.date, date)),
-  ]);
-
-  const totalMinutesUsed = logs.reduce((sum, log) => sum + log.minutesUsed, 0);
-  const totalMinutesGoal = apps.reduce((sum, app) => sum + app.dailyGoalMinutes, 0);
-  const allGoalsMet = apps.length > 0 && apps.every((app) => {
-    const appLogs = logs.filter((log) => log.appId === app.id);
-    if (appLogs.length === 0)
-      return false;
-    const appTotalMinutes = appLogs.reduce((sum, log) => sum + log.minutesUsed, 0);
-    return appTotalMinutes <= app.dailyGoalMinutes;
-  });
-
-  return {
-    date,
-    totalMinutesUsed,
-    totalMinutesGoal,
-    allGoalsMet,
-    xpEarned: 0,
-    streakDay: 0,
-  };
 };
 
 export const useHabitsStore = create<HabitsStore>()(
@@ -187,7 +162,7 @@ export const useHabitsStore = create<HabitsStore>()(
             minutesUsed: input.minutesUsed,
             source: input.source,
             date: targetDate,
-          }, db);
+          }, db as never);
 
           const xpEarnedDelta = calculateUsageXpPreview({
             minutesUsed: upsertResult.minutesUsed,
@@ -216,33 +191,13 @@ export const useHabitsStore = create<HabitsStore>()(
         const targetDate = date ?? get().currentDate ?? getIsoDate();
 
         try {
-          const snapshot = await calculateDailySnapshot(targetDate);
-          const currentSummaryRows = await db
-            .select()
-            .from(dailySummary)
-            .where(eq(dailySummary.date, targetDate));
-          const currentXpEarned = currentSummaryRows[0]?.xpEarned ?? get().dailySummarySnapshot?.xpEarned ?? 0;
-          const nextXpEarned = currentXpEarned + xpEarnedDelta;
-
-          await db
-            .insert(dailySummary)
-            .values(snapshot)
-            .onConflictDoUpdate({
-              target: dailySummary.date,
-              set: {
-                totalMinutesUsed: snapshot.totalMinutesUsed,
-                totalMinutesGoal: snapshot.totalMinutesGoal,
-                allGoalsMet: snapshot.allGoalsMet,
-                xpEarned: nextXpEarned,
-              },
-            });
+          const snapshot = await summaryService.upsertDailySummary({
+            date: targetDate,
+            xpEarnedDelta,
+          });
 
           set((state) => {
-            state.dailySummarySnapshot = {
-              ...snapshot,
-              xpEarned: nextXpEarned,
-              streakDay: state.dailySummarySnapshot?.streakDay ?? 0,
-            };
+            state.dailySummarySnapshot = snapshot;
           });
 
           return snapshot;
