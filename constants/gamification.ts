@@ -85,3 +85,13 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
 export const ACHIEVEMENT_IDS = ACHIEVEMENT_CATALOG.map((a) => a.id);
 
 export const TOTAL_ACHIEVEMENTS = ACHIEVEMENT_CATALOG.length;
+
+/** Logros que se desbloquean al alcanzar un nivel específico (ej: level_5 al nivel 5) */
+export const getAchievementsUnlockedAtLevel = (level: number): AchievementDefinition[] =>
+  ACHIEVEMENT_CATALOG.filter((a) => {
+    const match = /^level_(\d+)$/.exec(a.id);
+    if (!match)
+      return false;
+    const requiredLevel = Number.parseInt(match[1], 10);
+    return level === requiredLevel;
+  });

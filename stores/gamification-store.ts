@@ -9,6 +9,12 @@ import { db } from '@/db/client';
 import { streakService } from '@/services/streakService';
 import { achievements, dailySummary, monitoredApps, usageLogs, userStats } from '@/db/schema';
 
+export interface PendingLevelUp {
+  level: number;
+  xpGained: number;
+  previousLevel: number;
+}
+
 interface GamificationStoreState {
   currentXp: number;
   currentLevel: number;
@@ -18,6 +24,7 @@ interface GamificationStoreState {
   totalGoalsMet: number;
   unlockedAchievementIds: string[];
   lastXpGain: number;
+  pendingLevelUp: PendingLevelUp | null;
   isHydrating: boolean;
   error: string | null;
 }
@@ -27,6 +34,7 @@ interface GamificationStoreActions {
   syncFromDatabase: () => Promise<void>;
   grantXp: (amount: number) => Promise<void>;
   evaluateAndUnlockAchievements: (referenceDate?: string) => Promise<string[]>;
+  clearPendingLevelUp: () => void;
   clearError: () => void;
 }
 
@@ -50,6 +58,7 @@ const initialState: GamificationStoreState = {
   totalGoalsMet: 0,
   unlockedAchievementIds: [],
   lastXpGain: 0,
+  pendingLevelUp: null,
   isHydrating: false,
   error: null,
 };
@@ -219,6 +228,7 @@ export const useGamificationStore = create<GamificationStore>()(
 
         try {
           const stats = await getStatsSnapshot();
+          const prevLevel = stats.currentLevel;
           const nextXp = stats.currentXp + amount;
           const nextLevel = levelFromXp(nextXp);
 
@@ -234,6 +244,13 @@ export const useGamificationStore = create<GamificationStore>()(
             state.currentXp = nextXp;
             state.currentLevel = nextLevel;
             state.lastXpGain = amount;
+            if (nextLevel > prevLevel) {
+              state.pendingLevelUp = {
+                level: nextLevel,
+                xpGained: amount,
+                previousLevel: prevLevel,
+              };
+            }
           });
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Failed to grant XP';
@@ -291,6 +308,11 @@ export const useGamificationStore = create<GamificationStore>()(
           });
           return [];
         }
+      },
+      clearPendingLevelUp: () => {
+        set((state) => {
+          state.pendingLevelUp = null;
+        });
       },
       clearError: () => {
         set((state) => {

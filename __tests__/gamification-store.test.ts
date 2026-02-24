@@ -1,3 +1,5 @@
+import { useGamificationStore } from '@/stores/gamification-store';
+
 const mockDb = {
   select: jest.fn(),
   insert: jest.fn(),
@@ -21,7 +23,6 @@ jest.mock('@/services/streakService', () => ({
   streakService: { checkAndUpdateStreak: jest.fn(() => Promise.resolve()) },
 }));
 
-import { useGamificationStore } from '@/stores/gamification-store';
 
 describe('gamification store', () => {
   beforeEach(() => {
@@ -35,13 +36,14 @@ describe('gamification store', () => {
       totalGoalsMet: 0,
       unlockedAchievementIds: [],
       lastXpGain: 0,
+      pendingLevelUp: null,
       isHydrating: false,
       error: null,
     });
   });
 
   it('should hydrate from user_stats and unlocked achievements', async () => {
-    const whereQueue: Array<Promise<unknown>> = [
+    const whereQueue: Promise<unknown>[] = [
       Promise.resolve([
         {
           id: 1,
@@ -97,5 +99,18 @@ describe('gamification store', () => {
     expect(state.currentXp).toBe(110);
     expect(state.currentLevel).toBe(2);
     expect(state.lastXpGain).toBe(20);
+    expect(state.pendingLevelUp).toEqual({
+      level: 2,
+      xpGained: 20,
+      previousLevel: 1,
+    });
+  });
+
+  it('should clear pendingLevelUp', () => {
+    useGamificationStore.setState({
+      pendingLevelUp: { level: 2, xpGained: 20, previousLevel: 1 },
+    });
+    useGamificationStore.getState().clearPendingLevelUp();
+    expect(useGamificationStore.getState().pendingLevelUp).toBeNull();
   });
 });

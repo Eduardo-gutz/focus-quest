@@ -10,6 +10,7 @@ import { appService } from '@/services/appService';
 import { gamificationService } from '@/services/gamificationService';
 import { summaryService } from '@/services/summaryService';
 import { calculateUsageXpPreview, usageService } from '@/services/usageService';
+import { useAchievementToastStore } from '@/stores/achievement-toast-store';
 import { useGamificationStore } from '@/stores/gamification-store';
 
 interface CreateMonitoredAppInput {
@@ -206,7 +207,11 @@ export const useHabitsStore = create<HabitsStore>()(
             state.dailySummarySnapshot = summary;
           });
 
-          await useGamificationStore.getState().evaluateAndUnlockAchievements(targetDate);
+          const newUnlocks = await useGamificationStore
+            .getState()
+            .evaluateAndUnlockAchievements(targetDate);
+          if (newUnlocks.length > 0)
+            useAchievementToastStore.getState().enqueue(newUnlocks);
           await useGamificationStore.getState().syncFromDatabase();
 
           await get().hydrateToday(targetDate);

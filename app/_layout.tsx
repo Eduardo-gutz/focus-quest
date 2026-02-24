@@ -22,6 +22,9 @@ import { ActivityIndicator, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
+import { AchievementToastOverlay } from "@/components/AchievementToastOverlay";
+import { LevelUpModal } from "@/components/LevelUpModal";
+
 void SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -113,7 +116,8 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack>
+        <View style={{ flex: 1 }}>
+          <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
             name="app-detail/[id]"
@@ -146,6 +150,9 @@ export default function RootLayout() {
             }}
           />
         </Stack>
+        <AchievementToastOverlay />
+        <LevelUpModal />
+        </View>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </ThemeProvider>
     </GestureHandlerRootView>
