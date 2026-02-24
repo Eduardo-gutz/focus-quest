@@ -23,6 +23,28 @@ describe("usageService", () => {
     expect(xp).toBe(0);
   });
 
+  it("calcula solo registro sin meta cumplida: +10 XP", () => {
+    const xp = calculateUsageXpPreview({
+      minutesUsed: 50,
+      dailyGoalMinutes: 30,
+      isFirstLogOfDay: false,
+      isUpdate: false,
+    });
+
+    expect(xp).toBe(10);
+  });
+
+  it("calcula registro + meta cumplida sin primer log: +10 + 25 = 35 XP", () => {
+    const xp = calculateUsageXpPreview({
+      minutesUsed: 20,
+      dailyGoalMinutes: 30,
+      isFirstLogOfDay: false,
+      isUpdate: false,
+    });
+
+    expect(xp).toBe(35);
+  });
+
   it("crea registro cuando no existe log del día", async () => {
     const whereQueue: Array<Promise<unknown>> = [
       Promise.resolve([{ id: 1, dailyGoalMinutes: 30, isActive: true }]),

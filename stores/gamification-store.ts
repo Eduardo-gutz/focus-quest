@@ -1,11 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { and, desc, eq, lte } from 'drizzle-orm';
+import { desc, eq, lte } from 'drizzle-orm';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 import { XP_ACHIEVEMENT_UNLOCK, xpNeededForLevel as xpNeededForLevelFormula } from '@/constants/gamification';
 import { db } from '@/db/client';
+import { streakService } from '@/services/streakService';
 import { achievements, dailySummary, monitoredApps, usageLogs, userStats } from '@/db/schema';
 
 interface GamificationStoreState {
@@ -184,6 +185,8 @@ export const useGamificationStore = create<GamificationStore>()(
         });
 
         try {
+          await streakService.checkAndUpdateStreak(getIsoDate());
+
           const [stats, unlockedRows] = await Promise.all([
             getStatsSnapshot(),
             db.select().from(achievements).where(eq(achievements.unlocked, true)),

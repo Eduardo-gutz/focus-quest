@@ -17,6 +17,10 @@ jest.mock('@/db/client', () => ({
   db: mockDb,
 }));
 
+jest.mock('@/services/streakService', () => ({
+  streakService: { checkAndUpdateStreak: jest.fn(() => Promise.resolve()) },
+}));
+
 import { useGamificationStore } from '@/stores/gamification-store';
 
 describe('gamification store', () => {

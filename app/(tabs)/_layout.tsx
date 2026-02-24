@@ -45,7 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="Badges"
         options={{
-          title: "Badges",
+          title: "Logros",
           tabBarIcon: ({ color }) => (
             <IconSymbol size={28} name="bag.fill" color={color} />
           ),

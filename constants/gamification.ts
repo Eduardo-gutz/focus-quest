@@ -59,25 +59,27 @@ export interface AchievementDefinition {
   id: string;
   name: string;
   description: string;
+  hint: string;
+  emoji: string;
 }
 
 /** Catálogo de logros MVP (15 mínimo) según gamification.md */
 export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
-  { id: 'first_log', name: 'Primer Paso', description: 'Registra tu primer uso' },
-  { id: 'streak_3', name: 'En Racha', description: '3 días seguidos cumpliendo metas' },
-  { id: 'streak_7', name: 'Semana Perfecta', description: '7 días seguidos' },
-  { id: 'streak_14', name: 'Quincena de Oro', description: '14 días seguidos' },
-  { id: 'streak_30', name: 'Mes Imparable', description: '30 días seguidos' },
-  { id: 'level_5', name: 'Nivel 5', description: 'Alcanza el nivel 5' },
-  { id: 'level_10', name: 'Nivel 10', description: 'Alcanza el nivel 10' },
-  { id: 'apps_3', name: 'Triple Monitor', description: 'Monitorea 3 apps simultáneamente' },
-  { id: 'apps_5', name: 'Cinco Estrellas', description: 'Monitorea 5 apps' },
-  { id: 'perfect_week', name: 'Semana Sin Excesos', description: '7 días con todas las metas cumplidas' },
-  { id: 'xp_1000', name: 'Primer Millar', description: 'Acumula 1,000 XP' },
-  { id: 'xp_5000', name: 'Cinco Mil', description: 'Acumula 5,000 XP' },
-  { id: 'reduction_50', name: 'Mitad y Mitad', description: 'Reduce uso al 50% de tu meta' },
-  { id: 'zero_day', name: 'Día Zen', description: '0 minutos en una app monitoreada' },
-  { id: 'comeback', name: 'Regreso Triunfal', description: 'Vuelve después de perder racha' },
+  { id: 'first_log', name: 'Primer Paso', description: 'Registra tu primer uso', hint: 'Registra tu primer uso', emoji: '🎯' },
+  { id: 'streak_3', name: 'En Racha', description: '3 días seguidos cumpliendo metas', hint: '3 días seguidos cumpliendo metas', emoji: '🔥' },
+  { id: 'streak_7', name: 'Semana Perfecta', description: '7 días seguidos', hint: '7 días seguidos cumpliendo metas', emoji: '⭐' },
+  { id: 'streak_14', name: 'Quincena de Oro', description: '14 días seguidos', hint: '14 días seguidos cumpliendo metas', emoji: '🏅' },
+  { id: 'streak_30', name: 'Mes Imparable', description: '30 días seguidos', hint: '30 días seguidos cumpliendo metas', emoji: '👑' },
+  { id: 'level_5', name: 'Nivel 5', description: 'Alcanza el nivel 5', hint: 'Alcanza el nivel 5', emoji: '📗' },
+  { id: 'level_10', name: 'Nivel 10', description: 'Alcanza el nivel 10', hint: 'Alcanza el nivel 10', emoji: '📘' },
+  { id: 'apps_3', name: 'Triple Monitor', description: 'Monitorea 3 apps simultáneamente', hint: 'Monitorea 3 apps simultáneamente', emoji: '📱' },
+  { id: 'apps_5', name: 'Cinco Estrellas', description: 'Monitorea 5 apps', hint: 'Monitorea 5 apps simultáneamente', emoji: '🌟' },
+  { id: 'perfect_week', name: 'Semana Sin Excesos', description: '7 días con todas las metas cumplidas', hint: '7 días con todas las metas cumplidas', emoji: '💎' },
+  { id: 'xp_1000', name: 'Primer Millar', description: 'Acumula 1,000 XP', hint: 'Acumula 1,000 XP', emoji: '💫' },
+  { id: 'xp_5000', name: 'Cinco Mil', description: 'Acumula 5,000 XP', hint: 'Acumula 5,000 XP', emoji: '✨' },
+  { id: 'reduction_50', name: 'Mitad y Mitad', description: 'Reduce uso al 50% de tu meta', hint: 'Reduce uso al 50% de tu meta en un día', emoji: '📉' },
+  { id: 'zero_day', name: 'Día Zen', description: '0 minutos en una app monitoreada', hint: '0 minutos en una app monitoreada en un día', emoji: '🧘' },
+  { id: 'comeback', name: 'Regreso Triunfal', description: 'Vuelve después de perder racha', hint: 'Vuelve a cumplir metas después de perder racha', emoji: '💪' },
 ];
 
 export const ACHIEVEMENT_IDS = ACHIEVEMENT_CATALOG.map((a) => a.id);

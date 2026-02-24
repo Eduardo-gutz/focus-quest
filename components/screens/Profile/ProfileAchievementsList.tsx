@@ -38,7 +38,7 @@ export function ProfileAchievementsList({
             ]}
           >
             <ThemedText style={profileStyles.achievementEmoji}>
-              {isUnlocked ? "🏆" : "🔒"}
+              {isUnlocked ? achievement.emoji : "🔒"}
             </ThemedText>
             <View style={profileStyles.achievementContent}>
               <ThemedText
