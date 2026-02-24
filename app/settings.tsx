@@ -16,9 +16,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ThemedText } from "@/components/themed-text";
+import { rescheduleAll } from "@/services/notificationService";
+import { resetAllData } from "@/services/resetService";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useTheme } from "@/hooks/use-theme";
-import { resetAllData } from "@/services/resetService";
 import { Spacing } from "@/constants/theme";
 
 const APP_VERSION = Constants.expoConfig?.version ?? "1.0.0";
@@ -96,13 +97,19 @@ export default function SettingsScreen() {
           <SettingsToggleRow
             label="Recordatorio diario"
             value={dailyReminderEnabled}
-            onValueChange={(v) => setNotifications({ dailyReminderEnabled: v })}
+            onValueChange={(v) => {
+              setNotifications({ dailyReminderEnabled: v });
+              void rescheduleAll();
+            }}
           />
           {dailyReminderEnabled && (
             <SettingsTimePickerRow
               label="Hora del recordatorio"
               value={reminderTime}
-              onChange={(h, m) => setReminderTime(h, m)}
+              onChange={(h, m) => {
+                setReminderTime(h, m);
+                void rescheduleAll();
+              }}
             />
           )}
         </Card>

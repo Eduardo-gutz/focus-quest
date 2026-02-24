@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "minSdkVersion": 29,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -28,6 +29,7 @@
     },
     "plugins": [
       "expo-router",
+      ["expo-build-properties", { "android": { "minSdkVersion": 29 } }],
       [
         "expo-splash-screen",
         {
@@ -40,7 +42,14 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#F97316"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

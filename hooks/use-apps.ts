@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useHabitsStore } from '@/stores';
 import { MAX_ACTIVE_APPS } from '@/services/appService';
+import { rescheduleAll } from '@/services/notificationService';
 
 export interface AddAppPayload {
   name: string;
@@ -94,6 +95,7 @@ export const useApps = () => {
     clearError();
     try {
       await logUsageInStore(payload);
+      void rescheduleAll();
     } finally {
       setIsMutating(false);
     }

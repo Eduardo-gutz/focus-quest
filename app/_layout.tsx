@@ -1,5 +1,6 @@
 import { expoDb } from "@/db/client";
 import { useResolvedColorScheme } from "@/hooks/use-resolved-color-scheme";
+import { rescheduleAll } from "@/services/notificationService";
 import { init as initDatabase } from "@/services/database";
 import {
   Inter_400Regular,
@@ -12,9 +13,10 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
+import { Stack, router } from "expo-router";
+import * as Notifications from "expo-notifications";
 import { useFonts } from "expo-font";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
-import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -26,6 +28,15 @@ import { AchievementToastOverlay } from "@/components/AchievementToastOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
 
 void SplashScreen.preventAutoHideAsync();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 export const unstable_settings = {
   anchor: "(tabs)",
@@ -68,6 +79,38 @@ export default function RootLayout() {
       void SplashScreen.hideAsync();
     }
   }, [fontError, fontsLoaded, isDatabaseReady]);
+
+  useEffect(() => {
+    if (!isDatabaseReady) return;
+
+    const redirect = (data: Record<string, unknown> | undefined) => {
+      const screen = data?.screen;
+      if (screen === "log-usage") {
+        router.push("/log-usage");
+      }
+    };
+
+    const lastResponse = Notifications.getLastNotificationResponse();
+    if (lastResponse?.notification) {
+      redirect(lastResponse.notification.request.content.data as Record<string, unknown> | undefined);
+    }
+
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      redirect(response.notification.request.content.data as Record<string, unknown> | undefined);
+    });
+
+    return () => subscription.remove();
+  }, [isDatabaseReady]);
+
+  useEffect(() => {
+    if (!isDatabaseReady) return;
+
+    const timer = setTimeout(() => {
+      void rescheduleAll();
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [isDatabaseReady]);
 
   if (fontError) {
     return (

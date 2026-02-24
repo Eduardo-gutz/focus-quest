@@ -76,15 +76,15 @@ export async function seed(database: DatabaseLike = db): Promise<boolean> {
 
     const today = getIsoDate();
 
-    await tx.insert(usageLogs).values(
-      appRows.map((app) => ({
-        appId: app.id,
-        date: today,
-        minutesUsed: Math.max(5, app.dailyGoalMinutes - 5),
-        source: 'manual',
-        goalMet: true,
-      })),
-    );
+    // await tx.insert(usageLogs).values(
+    //   appRows.map((app) => ({
+    //     appId: app.id,
+    //     date: today,
+    //     minutesUsed: Math.max(5, app.dailyGoalMinutes - 5),
+    //     source: 'manual',
+    //     goalMet: true,
+    //   })),
+    // );
 
     await tx.insert(dailySummary).values({
       date: today,
