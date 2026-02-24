@@ -1,0 +1,16 @@
+{
+  "name": "usage-stats",
+  "version": "1.0.0",
+  "description": "Expose Android UsageStatsManager to JavaScript for automatic app usage tracking",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {},
+  "keywords": ["react-native", "expo", "usage-stats", "android"],
+  "author": "",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}

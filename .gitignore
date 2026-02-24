@@ -43,6 +43,9 @@ app-example
 /ios
 /android
 
+# local module build artifacts
+modules/**/build/
+
 .agents/
 .cursor/
 .context/
