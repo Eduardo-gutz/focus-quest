@@ -1,7 +1,7 @@
 import { expoDb } from "@/db/client";
 import { useResolvedColorScheme } from "@/hooks/use-resolved-color-scheme";
-import { rescheduleAll } from "@/services/notificationService";
 import { init as initDatabase } from "@/services/database";
+import { rescheduleAll } from "@/services/notificationService";
 import {
   Inter_400Regular,
   Inter_500Medium,
@@ -13,21 +13,22 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from "@react-navigation/native";
-import { Stack, router } from "expo-router";
-import * as Notifications from "expo-notifications";
-import { useFonts } from "expo-font";
 import { useDrizzleStudio } from "expo-drizzle-studio-plugin";
+import { useFonts } from "expo-font";
+import * as Notifications from "expo-notifications";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Text, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
 import { AchievementToastOverlay } from "@/components/AchievementToastOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
+import { PermissionModal } from "@/components/PermissionModal";
+import { useSettingsStore } from "@/stores/settings-store";
 import { registerUsageSyncTask } from "@/tasks/usage-sync-task";
-import { Platform } from "react-native";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -117,6 +118,19 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, [isDatabaseReady]);
 
+  const hasCompletedOnboarding = useSettingsStore(
+    (s) => s.hasCompletedOnboarding,
+  );
+
+  useEffect(() => {
+    if (!fontsLoaded || !isDatabaseReady || fontError) return;
+    if (hasCompletedOnboarding) {
+      router.replace("/(tabs)");
+    } else {
+      router.replace("/onboarding" as Parameters<typeof router.replace>[0]);
+    }
+  }, [fontsLoaded, isDatabaseReady, fontError, hasCompletedOnboarding]);
+
   if (fontError) {
     return (
       <View
@@ -168,6 +182,13 @@ export default function RootLayout() {
           <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
+            name="onboarding"
+            options={{
+              headerShown: false,
+              animation: "fade",
+            }}
+          />
+          <Stack.Screen
             name="app-detail/[id]"
             options={{
               presentation: "card",
@@ -200,6 +221,7 @@ export default function RootLayout() {
         </Stack>
         <AchievementToastOverlay />
         <LevelUpModal />
+        <PermissionModal />
         </View>
         <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       </ThemeProvider>

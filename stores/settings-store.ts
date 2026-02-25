@@ -21,6 +21,8 @@ interface SettingsStoreState {
   notifications: NotificationPreferences;
   reminderTime: ReminderTime;
   hasCompletedOnboarding: boolean;
+  permission_banner_rejected: boolean;
+  permission_modal_shown: boolean;
 }
 
 interface SettingsStoreActions {
@@ -28,6 +30,8 @@ interface SettingsStoreActions {
   setNotifications: (partialPreferences: Partial<NotificationPreferences>) => void;
   setReminderTime: (hour: number, minute: number) => void;
   setOnboardingCompleted: (completed: boolean) => void;
+  setPermissionBannerRejected: (rejected: boolean) => void;
+  setPermissionModalShown: (shown: boolean) => void;
   resetSettings: () => void;
 }
 
@@ -42,6 +46,8 @@ const initialState: SettingsStoreState = {
   },
   reminderTime: { hour: 21, minute: 0 },
   hasCompletedOnboarding: false,
+  permission_banner_rejected: false,
+  permission_modal_shown: false,
 };
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -71,13 +77,23 @@ export const useSettingsStore = create<SettingsStore>()(
           state.hasCompletedOnboarding = completed;
         });
       },
+      setPermissionBannerRejected: (rejected) => {
+        set((state) => {
+          state.permission_banner_rejected = rejected;
+        });
+      },
+      setPermissionModalShown: (shown) => {
+        set((state) => {
+          state.permission_modal_shown = shown;
+        });
+      },
       resetSettings: () => {
         set(() => initialState);
       },
     })),
     {
       name: 'focusquest-settings-store',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState, version) => {
         const state = (persistedState ?? {}) as Partial<SettingsStoreState>;
@@ -86,6 +102,12 @@ export const useSettingsStore = create<SettingsStore>()(
         }
         if (version < 3 && state.notifications && typeof state.notifications === 'object' && !('nudgingEnabled' in state.notifications)) {
           state.notifications = { ...(state.notifications as NotificationPreferences), nudgingEnabled: true };
+        }
+        if (version < 4 && state.permission_banner_rejected === undefined) {
+          state.permission_banner_rejected = false;
+        }
+        if (version < 4 && state.permission_modal_shown === undefined) {
+          state.permission_modal_shown = false;
         }
         return { ...initialState, ...state } as SettingsStoreState;
       },

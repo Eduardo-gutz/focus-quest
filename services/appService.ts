@@ -33,6 +33,7 @@ interface AppServiceDatabaseLike {
   insert: typeof db.insert;
   update: typeof db.update;
   delete: typeof db.delete;
+  transaction: typeof db.transaction;
 }
 
 const normalizeName = (name: string): string => name.trim();
@@ -160,5 +161,36 @@ export const appService = {
     await database
       .delete(monitoredApps)
       .where(eq(monitoredApps.id, appId));
+  },
+
+  /**
+   * Reemplaza todas las apps con la selección del onboarding.
+   * Borra las existentes y añade las nuevas en transacción atómica.
+   */
+  async replaceAppsForOnboarding(
+    apps: AddAppInput[],
+    database: AppServiceDatabaseLike = db,
+  ): Promise<void> {
+    for (const input of apps) {
+      validateName(normalizeName(input.name));
+      validateDailyGoalMinutes(input.dailyGoalMinutes);
+    }
+
+    await database.transaction(async (tx) => {
+      const allIds = await tx.select({ id: monitoredApps.id }).from(monitoredApps);
+      for (const row of allIds) {
+        await tx.delete(monitoredApps).where(eq(monitoredApps.id, row.id));
+      }
+      for (const input of apps) {
+        const name = normalizeName(input.name);
+        await tx.insert(monitoredApps).values({
+          name,
+          packageName: input.packageName ?? null,
+          iconEmoji: input.iconEmoji ?? null,
+          dailyGoalMinutes: input.dailyGoalMinutes,
+          isActive: true,
+        });
+      }
+    });
   },
 };

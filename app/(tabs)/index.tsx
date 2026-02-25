@@ -1,9 +1,10 @@
 import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
-import { Pressable, RefreshControl, ScrollView, View } from "react-native";
+import { Platform, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { hasUsageStatsPermission } from "usage-stats";
 
 import {
   DashboardHeader,
@@ -11,17 +12,30 @@ import {
   DashboardStatsRow,
   DashboardTodayList,
   DashboardXpBar,
+  TrackingBanner,
   createHomeThemedStyles,
   homeStyles,
 } from "@/components/screens/Home";
 import { ThemedText } from "@/components/themed-text";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { usePermissionModalTrigger } from "@/hooks/use-permission-modal-trigger";
 import { useTheme } from "@/hooks/use-theme";
+import { useSettingsStore } from "@/stores/settings-store";
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { colors, radius, shadow } = useTheme();
+  const permissionBannerRejected = useSettingsStore(
+    (s) => s.permission_banner_rejected,
+  );
+
+  usePermissionModalTrigger();
+
+  const showTrackingBanner =
+    Platform.OS === "android" &&
+    !hasUsageStatsPermission() &&
+    !permissionBannerRejected;
   const themedStyles = useMemo(
     () => createHomeThemedStyles(colors, radius, shadow),
     [colors, radius, shadow],
@@ -73,6 +87,8 @@ export default function HomeScreen() {
             levelTitle={levelTitle}
             themedStyles={themedStyles}
           />
+
+          {showTrackingBanner ? <TrackingBanner /> : null}
 
           <DashboardProgressRing
             completionPercentage={completionPercentage}
