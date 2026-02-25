@@ -74,7 +74,7 @@ describe("usageService", () => {
   it("actualiza registro cuando ya existe log del día", async () => {
     const whereQueue: Array<Promise<unknown>> = [
       Promise.resolve([{ id: 1, dailyGoalMinutes: 30, isActive: true }]),
-      Promise.resolve([{ id: 9 }]),
+      Promise.resolve([{ id: 9, source: "manual" }]),
     ];
 
     const where = jest.fn(() => whereQueue.shift() ?? Promise.resolve([]));
@@ -99,6 +99,35 @@ describe("usageService", () => {
     expect(result.goalMet).toBe(false);
     expect(database.update).toHaveBeenCalledTimes(1);
     expect(updateWhere).toHaveBeenCalledTimes(1);
+  });
+
+  it("no sobrescribe registro manual cuando sync auto intenta actualizar", async () => {
+    const whereQueue: Array<Promise<unknown>> = [
+      Promise.resolve([{ id: 1, dailyGoalMinutes: 30, isActive: true }]),
+      Promise.resolve([{ id: 9, source: "manual" }]),
+    ];
+
+    const where = jest.fn(() => whereQueue.shift() ?? Promise.resolve([]));
+    const from = jest.fn(() => ({ where }));
+    const updateWhere = jest.fn().mockResolvedValue(undefined);
+    const database = {
+      select: jest.fn(() => ({ from })),
+      insert: jest.fn(),
+      update: jest.fn(() => ({
+        set: jest.fn(() => ({
+          where: updateWhere,
+        })),
+      })),
+    };
+
+    const result = await usageService.upsertUsage(
+      { appId: 1, minutesUsed: 45, date: "2026-02-21", source: "auto" },
+      database as never,
+    );
+
+    expect(result.action).toBe("updated");
+    expect(database.update).not.toHaveBeenCalled();
+    expect(database.insert).not.toHaveBeenCalled();
   });
 
   it("obtiene historial por rango de fechas ordenado", async () => {

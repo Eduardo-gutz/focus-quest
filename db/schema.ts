@@ -49,6 +49,26 @@ export const achievements = sqliteTable('achievements', {
   unlockedAt: text('unlocked_at'),
 });
 
+export const notificationsSent = sqliteTable(
+  'notifications_sent',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    appId: integer('app_id')
+      .notNull()
+      .references(() => monitoredApps.id, { onDelete: 'cascade' }),
+    date: text('date').notNull(),
+    threshold: text('threshold').notNull(),
+    createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    notificationsSentAppDateThresholdIdx: uniqueIndex('notifications_sent_app_date_threshold_idx').on(
+      table.appId,
+      table.date,
+      table.threshold,
+    ),
+  }),
+);
+
 export const dailySummary = sqliteTable(
   'daily_summary',
   {

@@ -26,6 +26,8 @@ import "react-native-reanimated";
 
 import { AchievementToastOverlay } from "@/components/AchievementToastOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
+import { registerUsageSyncTask } from "@/tasks/usage-sync-task";
+import { Platform } from "react-native";
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -107,6 +109,9 @@ export default function RootLayout() {
 
     const timer = setTimeout(() => {
       void rescheduleAll();
+      if (Platform.OS === "android") {
+        void registerUsageSyncTask();
+      }
     }, 400);
 
     return () => clearTimeout(timer);

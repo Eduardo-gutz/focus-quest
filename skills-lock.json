@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "android-kotlin-development": {
+      "source": "aj-geddes/useful-ai-prompts",
+      "sourceType": "github",
+      "computedHash": "89358d1dd2b8d135b2ca1b00022a4d8d2d31361f42d6d01434522ddb9efd6889"
+    },
+    "building-native-ui": {
+      "source": "expo/skills",
+      "sourceType": "github",
+      "computedHash": "5ebc7d734c169ee8d4ece12f2ee9ccd569136bcc32235b42c2b0a15b54d6474e"
+    }
+  }
+}

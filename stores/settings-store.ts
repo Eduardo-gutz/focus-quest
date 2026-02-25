@@ -8,6 +8,7 @@ export type AppTheme = 'system' | 'light' | 'dark';
 interface NotificationPreferences {
   dailyReminderEnabled: boolean;
   achievementsEnabled: boolean;
+  nudgingEnabled: boolean;
 }
 
 export interface ReminderTime {
@@ -37,6 +38,7 @@ const initialState: SettingsStoreState = {
   notifications: {
     dailyReminderEnabled: true,
     achievementsEnabled: true,
+    nudgingEnabled: true,
   },
   reminderTime: { hour: 21, minute: 0 },
   hasCompletedOnboarding: false,
@@ -75,12 +77,15 @@ export const useSettingsStore = create<SettingsStore>()(
     })),
     {
       name: 'focusquest-settings-store',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => AsyncStorage),
       migrate: (persistedState, version) => {
         const state = (persistedState ?? {}) as Partial<SettingsStoreState>;
         if (version < 2 && !state.reminderTime) {
           state.reminderTime = { hour: 21, minute: 0 };
+        }
+        if (version < 3 && state.notifications && typeof state.notifications === 'object' && !('nudgingEnabled' in state.notifications)) {
+          state.notifications = { ...(state.notifications as NotificationPreferences), nudgingEnabled: true };
         }
         return { ...initialState, ...state } as SettingsStoreState;
       },

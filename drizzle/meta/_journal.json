@@ -15,6 +15,13 @@
       "when": 1771700000000,
       "tag": "0001_usage_log_unique_by_day",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771800000000,
+      "tag": "0002_notifications_sent",
+      "breakpoints": true
     }
   ]
 }

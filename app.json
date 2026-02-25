@@ -29,7 +29,14 @@
     },
     "plugins": [
       "expo-router",
-      ["expo-build-properties", { "android": { "minSdkVersion": 29 } }],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 29
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -49,7 +56,8 @@
           "icon": "./assets/images/icon.png",
           "color": "#F97316"
         }
-      ]
+      ],
+      "expo-background-task"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -2,6 +2,7 @@ import { useRouter } from "expo-router";
 import { useCallback, useMemo } from "react";
 import {
   Alert,
+  Platform,
   ScrollView,
   View,
 } from "react-native";
@@ -33,6 +34,9 @@ export default function SettingsScreen() {
   const theme = useSettingsStore((state) => state.theme);
   const dailyReminderEnabled = useSettingsStore(
     (state) => state.notifications.dailyReminderEnabled,
+  );
+  const nudgingEnabled = useSettingsStore(
+    (state) => state.notifications.nudgingEnabled,
   );
   const reminderTime = useSettingsStore((state) => state.reminderTime);
 
@@ -102,6 +106,13 @@ export default function SettingsScreen() {
               void rescheduleAll();
             }}
           />
+          {Platform.OS === "android" && (
+            <SettingsToggleRow
+              label="Alertas de uso (nudging)"
+              value={nudgingEnabled}
+              onValueChange={(v) => setNotifications({ nudgingEnabled: v })}
+            />
+          )}
           {dailyReminderEnabled && (
             <SettingsTimePickerRow
               label="Hora del recordatorio"

@@ -56,6 +56,7 @@ interface AppLookupRow {
 
 interface ExistingUsageRow {
   id: number;
+  source: "manual" | "auto";
 }
 
 interface UsageHistoryRow {
@@ -124,12 +125,20 @@ export const usageService = {
     const source = input.source ?? "manual";
 
     const existingRows = (await database
-      .select({ id: usageLogs.id })
+      .select({ id: usageLogs.id, source: usageLogs.source })
       .from(usageLogs)
       .where(and(eq(usageLogs.appId, input.appId), eq(usageLogs.date, input.date)))) as ExistingUsageRow[];
 
     const existing = existingRows[0];
     if (existing) {
+      if (existing.source === "manual" && source === "auto") {
+        return {
+          action: "updated",
+          dailyGoalMinutes: app.dailyGoalMinutes,
+          goalMet,
+          minutesUsed: input.minutesUsed,
+        };
+      }
       await database
         .update(usageLogs)
         .set({
