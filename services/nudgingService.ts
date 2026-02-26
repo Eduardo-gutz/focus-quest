@@ -5,16 +5,9 @@ import { Platform } from 'react-native';
 import { db } from '@/db/client';
 import { monitoredApps, notificationsSent, usageLogs } from '@/db/schema';
 import { useSettingsStore } from '@/stores/settings-store';
+import { getNudgingMessage, NUDGING_THRESHOLDS } from '@/services/nudgingMessages';
 
 const ANDROID_CHANNEL_ID = 'focusquest-reminders';
-
-const NUDGING_THRESHOLDS = [
-  { pct: 80, key: '80' as const },
-  { pct: 100, key: '100' as const },
-  { pct: 150, key: '150' as const },
-] as const;
-
-type ThresholdKey = (typeof NUDGING_THRESHOLDS)[number]['key'];
 
 async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS === 'android') {
@@ -24,26 +17,6 @@ async function ensureAndroidChannel(): Promise<void> {
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#F97316',
     });
-  }
-}
-
-function getNudgingMessage(
-  appName: string,
-  threshold: ThresholdKey,
-  minutesUsed: number,
-  dailyGoalMinutes: number,
-): string {
-  switch (threshold) {
-    case '80': {
-      const remaining = Math.max(0, dailyGoalMinutes - minutesUsed);
-      return `Te quedan ${remaining} min en ${appName}`;
-    }
-    case '100':
-      return `Superaste tu meta en ${appName}`;
-    case '150':
-      return `Llevas ${minutesUsed} min en ${appName}. Tu racha está en riesgo`;
-    default:
-      return `Uso de ${appName}: ${minutesUsed} min`;
   }
 }
 
@@ -92,21 +65,29 @@ export async function checkAndSendNudgingNotifications(date: string): Promise<vo
       if (alreadySent.length > 0) continue;
 
       const body = getNudgingMessage(name, key, minutesUsed, dailyGoalMinutes);
+      const identifier = `nudging-${appId}-${date}-${key}`;
 
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: 'FocusQuest',
-          body,
-          data: { screen: 'log-usage' },
-        },
-        trigger: { channelId: ANDROID_CHANNEL_ID },
-      });
-
+      // Insert first to prevent duplicates if schedule succeeds but insert fails
       await db.insert(notificationsSent).values({
         appId,
         date,
         threshold: key,
       });
+
+      try {
+        await Notifications.scheduleNotificationAsync({
+          identifier,
+          content: {
+            title: 'FocusQuest',
+            body,
+            data: { screen: 'log-usage' },
+          },
+          trigger: { channelId: ANDROID_CHANNEL_ID },
+        });
+      } catch {
+        // scheduleNotificationAsync may not show in background (expo#21267).
+        // Record already saved so we won't send duplicate on retry.
+      }
     }
   }
 }
