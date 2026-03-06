@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { Button } from "@/components/ui/button";
 import { ThemedText } from "@/components/themed-text";
+import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 
 const SLIDES = [
@@ -127,6 +127,8 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 72,
+    height: 72,
+    textAlignVertical: "center",
   },
   title: {
     textAlign: "center",

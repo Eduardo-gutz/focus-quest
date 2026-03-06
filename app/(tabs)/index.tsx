@@ -29,8 +29,11 @@ export default function HomeScreen() {
   const permissionBannerRejected = useSettingsStore(
     (s) => s.permission_banner_rejected,
   );
+  const hasCompletedOnboarding = useSettingsStore(
+    (s) => s.hasCompletedOnboarding,
+  );
 
-  usePermissionModalTrigger();
+  usePermissionModalTrigger({ enabled: hasCompletedOnboarding });
 
   const showTrackingBanner =
     Platform.OS === "android" &&

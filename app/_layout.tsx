@@ -27,6 +27,7 @@ import "react-native-reanimated";
 import { AchievementToastOverlay } from "@/components/AchievementToastOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
 import { PermissionModal } from "@/components/PermissionModal";
+import { useForegroundSync } from "@/hooks/use-foreground-sync";
 import { useSettingsStore } from "@/stores/settings-store";
 import { registerUsageSyncTask } from "@/tasks/usage-sync-task";
 
@@ -122,6 +123,8 @@ export default function RootLayout() {
     (s) => s.hasCompletedOnboarding,
   );
 
+  useForegroundSync(isDatabaseReady);
+
   useEffect(() => {
     if (!fontsLoaded || !isDatabaseReady || fontError) return;
     if (hasCompletedOnboarding) {
@@ -182,7 +185,7 @@ export default function RootLayout() {
           <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
-            name="onboarding"
+            name="onboarding/index"
             options={{
               headerShown: false,
               animation: "fade",
