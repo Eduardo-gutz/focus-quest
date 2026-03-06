@@ -7,17 +7,9 @@ import {
   calculateLevelProgress,
   getLevelTitle,
 } from "@/services/dashboard-metrics";
+import { getLocalIsoDate } from "@/services/dateUtils";
 import { useGamificationStore } from "@/stores";
 import { count, desc, eq, lte } from "drizzle-orm";
-
-/** Fecha de hoy en zona horaria local (YYYY-MM-DD) */
-const getIsoDate = (): string => {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-};
 
 /** Últimos N días incluyendo hoy, ordenados de más antiguo a más reciente */
 const getLastIsoDates = (endDateIso: string, totalDays: number): string[] => {
@@ -71,7 +63,7 @@ export const useProfile = () => {
   const [daysWithAllGoalsMet, setDaysWithAllGoalsMet] = useState(0);
   const [isLoadingChart, setIsLoadingChart] = useState(false);
 
-  const today = getIsoDate();
+  const today = getLocalIsoDate();
   const sevenDays = useMemo(() => getLastIsoDates(today, 7), [today]);
 
   const levelProgress = useMemo(

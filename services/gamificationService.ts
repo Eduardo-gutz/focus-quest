@@ -7,6 +7,7 @@ import {
   XP_REDUCTION_VS_YESTERDAY,
   XP_STREAK_PER_DAY,
 } from '@/constants/gamification';
+import { getPreviousLocalIsoDate } from '@/services/dateUtils';
 
 interface ProcessDailyCompletionInput {
   date: string;
@@ -22,10 +23,7 @@ interface ProcessDailyCompletionResult {
 }
 
 const getPrevStreakFromHistory = async (todayDate: string): Promise<number> => {
-  const [y, m, d] = todayDate.split('-').map(Number);
-  const yesterday = new Date(Date.UTC(y ?? 2020, (m ?? 1) - 1, (d ?? 1) - 1));
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  const yesterdayStr = getPreviousLocalIsoDate(todayDate);
 
   const rows = await db
     .select({ date: dailySummary.date, allGoalsMet: dailySummary.allGoalsMet })
@@ -37,24 +35,20 @@ const getPrevStreakFromHistory = async (todayDate: string): Promise<number> => {
   const byDate = new Map(rows.map((r) => [r.date, r.allGoalsMet]));
 
   let streak = 0;
-  const cursor = new Date(yesterday);
+  let cursor = yesterdayStr;
   for (let i = 0; i < 60; i++) {
-    const dateStr = cursor.toISOString().slice(0, 10);
-    const allGoalsMet = byDate.get(dateStr);
+    const allGoalsMet = byDate.get(cursor);
     if (allGoalsMet === undefined || !allGoalsMet)
       break;
     streak += 1;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
+    cursor = getPreviousLocalIsoDate(cursor);
   }
 
   return streak;
 };
 
 const getYesterdayTotalMinutes = async (date: string): Promise<number | null> => {
-  const [y, m, d] = date.split('-').map(Number);
-  const yesterday = new Date(Date.UTC(y ?? 2020, (m ?? 1) - 1, (d ?? 1) - 1));
-  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
-  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  const yesterdayStr = getPreviousLocalIsoDate(date);
 
   const logs = await db
     .select({ minutesUsed: usageLogs.minutesUsed, appId: usageLogs.appId })

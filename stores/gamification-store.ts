@@ -6,8 +6,9 @@ import { immer } from 'zustand/middleware/immer';
 
 import { XP_ACHIEVEMENT_UNLOCK, xpNeededForLevel as xpNeededForLevelFormula } from '@/constants/gamification';
 import { db } from '@/db/client';
-import { streakService } from '@/services/streakService';
 import { achievements, dailySummary, monitoredApps, usageLogs, userStats } from '@/db/schema';
+import { getLocalIsoDate } from '@/services/dateUtils';
+import { streakService } from '@/services/streakService';
 
 export interface PendingLevelUp {
   level: number;
@@ -39,8 +40,6 @@ interface GamificationStoreActions {
 }
 
 interface GamificationStore extends GamificationStoreState, GamificationStoreActions {}
-
-const getIsoDate = (): string => new Date().toISOString().slice(0, 10);
 
 const levelFromXp = (xp: number): number => {
   let level = 1;
@@ -194,7 +193,7 @@ export const useGamificationStore = create<GamificationStore>()(
         });
 
         try {
-          await streakService.checkAndUpdateStreak(getIsoDate());
+          await streakService.checkAndUpdateStreak(getLocalIsoDate());
 
           const [stats, unlockedRows] = await Promise.all([
             getStatsSnapshot(),
@@ -260,7 +259,7 @@ export const useGamificationStore = create<GamificationStore>()(
         }
       },
       evaluateAndUnlockAchievements: async (referenceDate) => {
-        const targetDate = referenceDate ?? getIsoDate();
+        const targetDate = referenceDate ?? getLocalIsoDate();
 
         try {
           const stats = await getStatsSnapshot();

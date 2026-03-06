@@ -3,27 +3,19 @@ import { Platform } from 'react-native';
 
 import { db } from '@/db/client';
 import { monitoredApps } from '@/db/schema';
+import { getLocalIsoDate, getStartOfLocalDayMs } from '@/services/dateUtils';
 import { checkAndSendNudgingNotifications } from '@/services/nudgingService';
 import { summaryService } from '@/services/summaryService';
 import { usageService } from '@/services/usageService';
 import { getUsageStats, hasUsageStatsPermission } from 'usage-stats';
-
-function getTodayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function getStartOfDayMs(dateStr: string): number {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  return new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
-}
 
 export async function syncUsageFromUsageStats(date?: string): Promise<void> {
   if (Platform.OS !== 'android') return;
 
   if (!hasUsageStatsPermission()) return;
 
-  const today = date ?? getTodayISO();
-  const startOfDay = getStartOfDayMs(today);
+  const today = date ?? getLocalIsoDate();
+  const startOfDay = getStartOfLocalDayMs(today);
   const endTime = Date.now();
 
   const entries = getUsageStats(startOfDay, endTime);

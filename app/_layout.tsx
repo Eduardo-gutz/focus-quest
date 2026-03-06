@@ -27,6 +27,7 @@ import "react-native-reanimated";
 import { AchievementToastOverlay } from "@/components/AchievementToastOverlay";
 import { LevelUpModal } from "@/components/LevelUpModal";
 import { PermissionModal } from "@/components/PermissionModal";
+import { useDayRollover } from "@/hooks/use-day-rollover";
 import { useForegroundSync } from "@/hooks/use-foreground-sync";
 import { useSettingsStore } from "@/stores/settings-store";
 import { registerUsageSyncTask } from "@/tasks/usage-sync-task";
@@ -124,6 +125,7 @@ export default function RootLayout() {
   );
 
   useForegroundSync(isDatabaseReady);
+  useDayRollover(isDatabaseReady);
 
   useEffect(() => {
     if (!fontsLoaded || !isDatabaseReady || fontError) return;

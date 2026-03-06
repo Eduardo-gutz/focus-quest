@@ -10,6 +10,7 @@ import {
   usageLogs,
   userStats,
 } from '@/db/schema';
+import { getLocalIsoDate } from '@/services/dateUtils';
 import migrations from '@/drizzle/migrations';
 
 interface InitDatabaseOptions {
@@ -27,10 +28,6 @@ interface InsertOnlyDatabase {
   insert: typeof db.insert;
 }
 
-
-function getIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export async function migrate(database: typeof db = db): Promise<void> {
   await runMigrations(database, migrations);
@@ -74,7 +71,7 @@ export async function seed(database: DatabaseLike = db): Promise<boolean> {
       .from(monitoredApps)
       .where(inArray(monitoredApps.name, ['TikTok', 'Instagram', 'YouTube']));
 
-    const today = getIsoDate();
+    const today = getLocalIsoDate();
 
     // await tx.insert(usageLogs).values(
     //   appRows.map((app) => ({

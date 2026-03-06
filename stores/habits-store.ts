@@ -7,6 +7,7 @@ import { immer } from 'zustand/middleware/immer';
 import { db } from '@/db/client';
 import { dailySummary, monitoredApps, usageLogs } from '@/db/schema';
 import { appService } from '@/services/appService';
+import { getLocalIsoDate } from '@/services/dateUtils';
 import { gamificationService } from '@/services/gamificationService';
 import { summaryService } from '@/services/summaryService';
 import { calculateUsageXpPreview, usageService } from '@/services/usageService';
@@ -61,13 +62,11 @@ interface HabitsStoreActions {
 
 interface HabitsStore extends HabitsStoreState, HabitsStoreActions {}
 
-const getIsoDate = (): string => new Date().toISOString().slice(0, 10);
-
 const initialState: HabitsStoreState = {
   apps: [],
   activeApps: [],
   todayLogs: [],
-  currentDate: getIsoDate(),
+  currentDate: getLocalIsoDate(),
   dailySummarySnapshot: null,
   isHydrating: false,
   error: null,
@@ -78,7 +77,7 @@ export const useHabitsStore = create<HabitsStore>()(
     immer((set, get) => ({
       ...initialState,
       hydrateToday: async (date) => {
-        const targetDate = date ?? getIsoDate();
+        const targetDate = date ?? getLocalIsoDate();
         set((state) => {
           state.isHydrating = true;
           state.error = null;
@@ -156,7 +155,7 @@ export const useHabitsStore = create<HabitsStore>()(
         }
       },
       logUsage: async (input) => {
-        const targetDate = input.date ?? get().currentDate ?? getIsoDate();
+        const targetDate = input.date ?? get().currentDate ?? getLocalIsoDate();
         try {
           const isFirstLogOfDay = get().todayLogs.filter((log) => log.date === targetDate).length === 0;
           const upsertResult = await usageService.upsertUsage({
@@ -224,7 +223,7 @@ export const useHabitsStore = create<HabitsStore>()(
         }
       },
       refreshDailySummary: async (date, xpEarnedDelta = 0) => {
-        const targetDate = date ?? get().currentDate ?? getIsoDate();
+        const targetDate = date ?? get().currentDate ?? getLocalIsoDate();
 
         try {
           const snapshot = await summaryService.upsertDailySummary({

@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 
 import { db } from '@/db/client';
 import { usageLogs, userStats } from '@/db/schema';
+import { getLocalIsoDate } from '@/services/dateUtils';
 import { useSettingsStore } from '@/stores/settings-store';
 
 const NOTIFICATION_IDS = {
@@ -13,14 +14,6 @@ const NOTIFICATION_IDS = {
 } as const;
 
 const ANDROID_CHANNEL_ID = 'focusquest-reminders';
-
-function getTodayISO(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS === 'android') {
@@ -118,7 +111,7 @@ async function scheduleWeeklyMotivational(): Promise<void> {
 }
 
 export async function rescheduleAll(): Promise<void> {
-  const today = getTodayISO();
+  const today = getLocalIsoDate();
   const settings = useSettingsStore.getState();
   const { notifications, reminderTime } = settings;
   const dailyReminderEnabled = notifications.dailyReminderEnabled;

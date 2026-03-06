@@ -2,16 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/db/client';
 import { userStats } from '@/db/schema';
-
-/**
- * Calcula la diferencia en días entre dos fechas ISO (YYYY-MM-DD).
- * Retorna días desde dateA hasta dateB (dateB - dateA).
- */
-const daysBetween = (dateA: string, dateB: string): number => {
-  const a = new Date(`${dateA}T12:00:00`).getTime();
-  const b = new Date(`${dateB}T12:00:00`).getTime();
-  return Math.floor((b - a) / (24 * 60 * 60 * 1000));
-};
+import { daysBetweenLocalDates } from '@/services/dateUtils';
 
 /**
  * Verifica si se perdió la racha por días sin registro y actualiza user_stats.
@@ -29,7 +20,7 @@ export const streakService = {
     if (!row?.lastActiveDate || row.lastActiveDate === today)
       return;
 
-    const diffDays = daysBetween(row.lastActiveDate, today);
+    const diffDays = daysBetweenLocalDates(row.lastActiveDate, today);
     if (diffDays <= 1)
       return;
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo } from "react";
 
 import { useApps } from "@/hooks/use-apps";
+import { getLocalIsoDate } from "@/services/dateUtils";
 import {
   calculateDashboardCompletion,
   calculateLevelProgress,
@@ -18,8 +19,6 @@ export interface DashboardTopApp {
   isGoalMet: boolean;
   statusMark: "✓" | "✗";
 }
-
-const getIsoDate = (): string => new Date().toISOString().slice(0, 10);
 
 const clamp = (value: number, min = 0, max = 1): number => Math.min(max, Math.max(min, value));
 
@@ -45,7 +44,7 @@ export const useDashboard = () => {
     void hydrateGamification();
   }, [hydrateGamification]);
 
-  const effectiveDate = currentDate || getIsoDate();
+  const effectiveDate = currentDate || getLocalIsoDate();
   const greeting = useMemo(() => getGreetingByHour(new Date().getHours()), []);
 
   const completion = useMemo(

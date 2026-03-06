@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import { Platform, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { hasUsageStatsPermission } from "usage-stats";
 
 import {
   DashboardHeader,
@@ -20,6 +19,7 @@ import { ThemedText } from "@/components/themed-text";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { usePermissionModalTrigger } from "@/hooks/use-permission-modal-trigger";
 import { useTheme } from "@/hooks/use-theme";
+import { useUsageStatsPermission } from "@/hooks/use-usage-stats-permission";
 import { useSettingsStore } from "@/stores/settings-store";
 
 export default function HomeScreen() {
@@ -35,9 +35,10 @@ export default function HomeScreen() {
 
   usePermissionModalTrigger({ enabled: hasCompletedOnboarding });
 
+  const hasUsageStatsPermission = useUsageStatsPermission();
   const showTrackingBanner =
     Platform.OS === "android" &&
-    !hasUsageStatsPermission() &&
+    !hasUsageStatsPermission &&
     !permissionBannerRejected;
   const themedStyles = useMemo(
     () => createHomeThemedStyles(colors, radius, shadow),
