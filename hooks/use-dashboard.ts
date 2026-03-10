@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo } from "react";
 
 import { useApps } from "@/hooks/use-apps";
-import { getLocalIsoDate } from "@/services/dateUtils";
 import {
   calculateDashboardCompletion,
   calculateLevelProgress,
   getGreetingByHour,
 } from "@/services/dashboard-metrics";
+import { getLocalIsoDate } from "@/services/dateUtils";
 import { useGamificationStore, useHabitsStore } from "@/stores";
 
 export interface DashboardTopApp {
@@ -65,9 +65,9 @@ export const useDashboard = () => {
     return activeApps.slice(0, 5).map((app) => {
       const usedMinutes = usedMinutesByAppId.get(app.id) ?? 0;
       const progressRatio = app.dailyGoalMinutes > 0
-        ? clamp(usedMinutes / app.dailyGoalMinutes)
-        : 0;
-      const isGoalMet = usedMinutes <= app.dailyGoalMinutes && usedMinutesByAppId.has(app.id);
+      ? clamp(usedMinutes / app.dailyGoalMinutes)
+      : 0;
+      const isGoalMet = usedMinutes <= app.dailyGoalMinutes || !usedMinutesByAppId.has(app.id);
 
       return {
         id: app.id,
@@ -91,11 +91,18 @@ export const useDashboard = () => {
     await Promise.all([refreshApps(), hydrateGamification()]);
   }, [refreshApps, hydrateGamification]);
 
+  const overGoalApps = topApps.filter(
+    (app) => !app.isGoalMet && app.usedMinutes > 0,
+  );
+  const anyAppOverGoal = overGoalApps.length > 0;
+
   return {
     greeting,
-    completionPercentage: completion.completionPercentage,
-    metGoalsCount: completion.metGoalsCount,
-    totalGoalsCount: completion.totalGoalsCount,
+    completionPercentage: completion.usedPercentage,
+    minutesUsed: completion.minutesUsed,
+    minutesGoal: completion.minutesGoal,
+    anyAppOverGoal,
+    overGoalApps,
     currentStreak,
     currentLevel,
     levelTitle: levelProgress.levelTitle,

@@ -37,7 +37,7 @@ describe('summaryService', () => {
     expect(result.allGoalsMet).toBe(true);
   });
 
-  it('calcula día parcial cuando falta registro de una app activa', async () => {
+  it('calcula día parcial cuando falta registro de una app activa (default logrado)', async () => {
     const whereQueue: Array<Promise<unknown>> = [
       Promise.resolve([
         { id: 1, dailyGoalMinutes: 30, isActive: true },
@@ -57,7 +57,7 @@ describe('summaryService', () => {
 
     expect(result.totalMinutesUsed).toBe(20);
     expect(result.totalMinutesGoal).toBe(70);
-    expect(result.allGoalsMet).toBe(false);
+    expect(result.allGoalsMet).toBe(true);
   });
 
   it('calcula día fallido cuando una app excede su meta', async () => {
@@ -84,7 +84,7 @@ describe('summaryService', () => {
     expect(result.allGoalsMet).toBe(false);
   });
 
-  it('calcula sin registros con totalMinutesUsed=0 y allGoalsMet=false', async () => {
+  it('calcula sin registros con totalMinutesUsed=0 y allGoalsMet=true (default logrado)', async () => {
     const whereQueue: Array<Promise<unknown>> = [
       Promise.resolve([{ id: 1, dailyGoalMinutes: 30, isActive: true }]),
       Promise.resolve([]),
@@ -99,7 +99,7 @@ describe('summaryService', () => {
 
     expect(result.totalMinutesUsed).toBe(0);
     expect(result.totalMinutesGoal).toBe(30);
-    expect(result.allGoalsMet).toBe(false);
+    expect(result.allGoalsMet).toBe(true);
   });
 
   it('acumula xpEarned al hacer upsert del mismo día', async () => {

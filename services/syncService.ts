@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 
 import { db } from '@/db/client';
 import { monitoredApps } from '@/db/schema';
+import { gamificationService } from '@/services/gamificationService';
 import { getLocalIsoDate, getStartOfLocalDayMs } from '@/services/dateUtils';
 import { checkAndSendNudgingNotifications } from '@/services/nudgingService';
 import { summaryService } from '@/services/summaryService';
@@ -22,6 +23,7 @@ export async function syncUsageFromUsageStats(date?: string): Promise<void> {
   if (entries.length === 0) {
     await summaryService.upsertDailySummary({ date: today }, db);
     await checkAndSendNudgingNotifications(today);
+    await gamificationService.processStreakAfterSync(today);
     return;
   }
 
@@ -58,4 +60,5 @@ export async function syncUsageFromUsageStats(date?: string): Promise<void> {
 
   await summaryService.upsertDailySummary({ date: today }, db);
   await checkAndSendNudgingNotifications(today);
+  await gamificationService.processStreakAfterSync(today);
 }

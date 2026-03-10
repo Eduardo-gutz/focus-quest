@@ -47,8 +47,10 @@ export default function HomeScreen() {
   const {
     greeting,
     completionPercentage,
-    metGoalsCount,
-    totalGoalsCount,
+    minutesUsed,
+    minutesGoal,
+    anyAppOverGoal,
+    overGoalApps,
     currentStreak,
     currentLevel,
     levelTitle,
@@ -96,8 +98,10 @@ export default function HomeScreen() {
 
           <DashboardProgressRing
             completionPercentage={completionPercentage}
-            metGoalsCount={metGoalsCount}
-            totalGoalsCount={totalGoalsCount}
+            minutesUsed={minutesUsed}
+            minutesGoal={minutesGoal}
+            anyAppOverGoal={anyAppOverGoal}
+            overGoalApps={overGoalApps}
             colors={colors}
             themedStyles={themedStyles}
           />

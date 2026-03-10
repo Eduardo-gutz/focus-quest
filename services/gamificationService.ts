@@ -1,13 +1,16 @@
 import { desc, eq, lte } from 'drizzle-orm';
 
+import {
+    XP_PERFECT_DAY,
+    XP_REDUCTION_VS_YESTERDAY,
+    XP_STREAK_PER_DAY,
+} from '@/constants/gamification';
 import { db } from '@/db/client';
 import { dailySummary, monitoredApps, usageLogs, userStats } from '@/db/schema';
-import {
-  XP_PERFECT_DAY,
-  XP_REDUCTION_VS_YESTERDAY,
-  XP_STREAK_PER_DAY,
-} from '@/constants/gamification';
 import { getPreviousLocalIsoDate } from '@/services/dateUtils';
+import { summaryService } from '@/services/summaryService';
+import { useAchievementToastStore } from '@/stores/achievement-toast-store';
+import { useGamificationStore } from '@/stores/gamification-store';
 
 interface ProcessDailyCompletionInput {
   date: string;
@@ -142,6 +145,49 @@ export const gamificationService = {
       newLongestStreak,
       streakDay,
     };
+  },
+
+  /**
+   * Procesa la racha tras un sync (tracking automático).
+   * Se llama al abrir la app o volver a foreground cuando el día está completo.
+   */
+  async processStreakAfterSync(date: string): Promise<void> {
+    const snapshot = await summaryService.calculateDailySummary(date);
+    const activeApps = await db
+      .select({ id: monitoredApps.id })
+      .from(monitoredApps)
+      .where(eq(monitoredApps.isActive, true));
+    const activeAppsCount = activeApps.length;
+
+    if (!snapshot.isCompleteDay || activeAppsCount === 0)
+      return;
+
+    const completion = await gamificationService.processDailyCompletion({
+      date,
+      allGoalsMet: snapshot.allGoalsMet,
+      activeAppsCount,
+    });
+
+    const didProcessCompletion = completion.bonusXp > 0 || completion.streakDay > 0;
+    if (!didProcessCompletion)
+      return;
+
+    if (completion.bonusXp > 0)
+      await useGamificationStore.getState().grantXp(completion.bonusXp);
+
+    await summaryService.upsertDailySummary({
+      date,
+      xpEarnedDelta: completion.bonusXp,
+      streakDayOverride: completion.streakDay,
+    });
+
+    const newUnlocks = await useGamificationStore
+      .getState()
+      .evaluateAndUnlockAchievements(date);
+    if (newUnlocks.length > 0)
+      useAchievementToastStore.getState().enqueue(newUnlocks);
+
+    await useGamificationStore.getState().syncFromDatabase();
   },
 
   async computeStreakDayForDate(date: string): Promise<number> {

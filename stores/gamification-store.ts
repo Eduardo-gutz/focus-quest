@@ -3,6 +3,8 @@ import { desc, eq, lte } from 'drizzle-orm';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
+import { Platform } from 'react-native';
+import { hasUsageStatsPermission } from 'usage-stats';
 
 import { XP_ACHIEVEMENT_UNLOCK, xpNeededForLevel as xpNeededForLevelFormula } from '@/constants/gamification';
 import { db } from '@/db/client';
@@ -122,12 +124,17 @@ const collectAchievementCandidates = async (
   referenceDate: string,
   stats: typeof userStats.$inferSelect,
 ): Promise<string[]> => {
+  const hasAutoTracking = Platform.OS === 'android' && hasUsageStatsPermission();
   const unlocked: string[] = [];
   const activeApps = await db
     .select({ id: monitoredApps.id })
     .from(monitoredApps)
     .where(eq(monitoredApps.isActive, true));
   const usageForDay = await db.select().from(usageLogs).where(eq(usageLogs.date, referenceDate));
+
+  const logsForUsageAchievements = hasAutoTracking
+    ? usageForDay.filter((log) => log.source === 'auto')
+    : usageForDay;
 
   if (await hasAnyUsageLog())
     unlocked.push('first_log');
@@ -151,14 +158,16 @@ const collectAchievementCandidates = async (
     unlocked.push('xp_1000');
   if (stats.currentXp >= 5000)
     unlocked.push('xp_5000');
-  if (usageForDay.some((log) => log.minutesUsed === 0))
+  if (hasAutoTracking)
+    unlocked.push('auto_tracker');
+  if (logsForUsageAchievements.some((log) => log.minutesUsed === 0))
     unlocked.push('zero_day');
   if (await hasPerfectWeek(referenceDate))
     unlocked.push('perfect_week');
   if (await hasComeback(referenceDate))
     unlocked.push('comeback');
 
-  if (usageForDay.length > 0) {
+  if (logsForUsageAchievements.length > 0) {
     const appsById = new Map(
       (
         await db
@@ -168,7 +177,7 @@ const collectAchievementCandidates = async (
       ).map((app) => [app.id, app.goal]),
     );
 
-    const reduction = usageForDay.some((log) => {
+    const reduction = logsForUsageAchievements.some((log) => {
       const goal = appsById.get(log.appId);
       if (!goal)
         return false;

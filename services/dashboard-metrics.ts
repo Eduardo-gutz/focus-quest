@@ -29,15 +29,15 @@ export const getGreetingByHour = (hour: number, userName?: string): string => {
 };
 
 export const calculateDashboardCompletion = (
-  activeApps: Array<{ id: number; dailyGoalMinutes: number }>,
-  logs: Array<{ appId: number; date: string; minutesUsed: number }>,
+  activeApps: { id: number; dailyGoalMinutes: number }[],
+  logs: { appId: number; date: string; minutesUsed: number }[],
   currentDate: string,
-): { completionPercentage: number; metGoalsCount: number; totalGoalsCount: number } => {
+): { usedPercentage: number; minutesUsed: number; minutesGoal: number } => {
   if (activeApps.length === 0) {
     return {
-      completionPercentage: 0,
-      metGoalsCount: 0,
-      totalGoalsCount: 0,
+      usedPercentage: 0,
+      minutesUsed: 0,
+      minutesGoal: 0,
     };
   }
 
@@ -50,17 +50,23 @@ export const calculateDashboardCompletion = (
     usedMinutesByAppId.set(log.appId, current + log.minutesUsed);
   }
 
-  const metGoalsCount = activeApps.reduce((count, app) => {
-    const usedMinutes = usedMinutesByAppId.get(app.id);
-    if (usedMinutes === undefined)
-      return count;
-    return usedMinutes <= app.dailyGoalMinutes ? count + 1 : count;
-  }, 0);
+  let totalUsedMinutes = 0;
+  let totalGoalMinutes = 0;
+
+  for (const app of activeApps) {
+    const usedMinutes = usedMinutesByAppId.get(app.id) ?? 0;
+    totalUsedMinutes += usedMinutes;
+    totalGoalMinutes += app.dailyGoalMinutes;
+  }
+
+  const usedPercentage = totalGoalMinutes > 0
+    ? Math.min(100, Math.round((totalUsedMinutes / totalGoalMinutes) * 100))
+    : 0;
 
   return {
-    completionPercentage: Math.round((metGoalsCount / activeApps.length) * 100),
-    metGoalsCount,
-    totalGoalsCount: activeApps.length,
+    usedPercentage,
+    minutesUsed: totalUsedMinutes,
+    minutesGoal: totalGoalMinutes,
   };
 };
 

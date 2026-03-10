@@ -20,7 +20,13 @@ import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  InteractionManager,
+  Platform,
+  Text,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 
@@ -76,13 +82,12 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!fontsLoaded && !fontError) {
-      return;
-    }
+    if (!fontsLoaded || !isDatabaseReady || fontError) return;
 
-    if (isDatabaseReady) {
+    const task = InteractionManager.runAfterInteractions(() => {
       void SplashScreen.hideAsync();
-    }
+    });
+    return () => task.cancel();
   }, [fontError, fontsLoaded, isDatabaseReady]);
 
   useEffect(() => {

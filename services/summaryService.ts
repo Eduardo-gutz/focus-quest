@@ -34,7 +34,7 @@ const calculateDailySummary = async (
   const isCompleteDay = apps.length > 0 && apps.every((app) =>
     logs.some((log) => log.appId === app.id),
   );
-  const allGoalsMet = isCompleteDay && apps.every((app) => {
+  const allGoalsMet = apps.length > 0 && apps.every((app) => {
     const appLogs = logs.filter((log) => log.appId === app.id);
     const appTotalMinutes = appLogs.reduce((sum, log) => sum + log.minutesUsed, 0);
     return appTotalMinutes <= app.dailyGoalMinutes;

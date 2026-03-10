@@ -1,3 +1,11 @@
+jest.mock('react-native', () => ({
+  Platform: { OS: 'ios' },
+}));
+
+jest.mock('usage-stats', () => ({
+  hasUsageStatsPermission: () => false,
+}));
+
 const mockDb = {
   select: jest.fn(),
   update: jest.fn(),

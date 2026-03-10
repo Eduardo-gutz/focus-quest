@@ -1,10 +1,13 @@
+import { db } from '@/db/client';
 import { useGamificationStore } from '@/stores/gamification-store';
 
-const mockDb = {
-  select: jest.fn(),
-  insert: jest.fn(),
-  update: jest.fn(),
-};
+jest.mock('react-native', () => ({
+  Platform: { OS: 'ios' },
+}));
+
+jest.mock('usage-stats', () => ({
+  hasUsageStatsPermission: () => false,
+}));
 
 jest.mock('@react-native-async-storage/async-storage', () => ({
   __esModule: true,
@@ -15,9 +18,21 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
   },
 }));
 
-jest.mock('@/db/client', () => ({
-  db: mockDb,
-}));
+jest.mock('@/db/client', () => {
+  const mockDb = {
+    select: jest.fn(),
+    insert: jest.fn(),
+    update: jest.fn(),
+  };
+  return { db: mockDb };
+});
+
+
+const mockDb = db as unknown as {
+  select: jest.Mock;
+  insert: jest.Mock;
+  update: jest.Mock;
+};
 
 jest.mock('@/services/streakService', () => ({
   streakService: { checkAndUpdateStreak: jest.fn(() => Promise.resolve()) },

@@ -19,6 +19,9 @@ const MAPPING = {
   'chevron.left.forwardslash.chevron.right': 'code',
   'chevron.right': 'chevron-right',
   'gearshape.fill': 'settings',
+  'app.fill': 'apps',
+  'bag.fill': 'emoji-events',
+  'person.fill': 'person',
 } as IconMapping;
 
 /**

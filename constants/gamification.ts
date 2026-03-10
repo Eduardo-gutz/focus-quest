@@ -80,6 +80,7 @@ export const ACHIEVEMENT_CATALOG: AchievementDefinition[] = [
   { id: 'reduction_50', name: 'Mitad y Mitad', description: 'Reduce uso al 50% de tu meta', hint: 'Reduce uso al 50% de tu meta en un día', emoji: '📉' },
   { id: 'zero_day', name: 'Día Zen', description: '0 minutos en una app monitoreada', hint: '0 minutos en una app monitoreada en un día', emoji: '🧘' },
   { id: 'comeback', name: 'Regreso Triunfal', description: 'Vuelve después de perder racha', hint: 'Vuelve a cumplir metas después de perder racha', emoji: '💪' },
+  { id: 'auto_tracker', name: 'Piloto Automático', description: 'Activa el tracking automático de uso', hint: 'Concede permiso de acceso a estadísticas de uso', emoji: '📡' },
 ];
 
 export const ACHIEVEMENT_IDS = ACHIEVEMENT_CATALOG.map((a) => a.id);
